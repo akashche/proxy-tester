@@ -1,0 +1,5 @@
+.stack-work/
+proxy-tester.cabal
+*~
+/.idea
+/Makefile
