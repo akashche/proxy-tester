@@ -68,6 +68,9 @@ executables:
         - "-optl-Wl,-lfltkc"
     dependencies:
     - fltkhs
+    - text
+    - unordered-containers
+    - vector
     - vt-utils
     - proxy-tester
 
