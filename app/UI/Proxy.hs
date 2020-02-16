@@ -65,8 +65,33 @@ proxyCreateRoot label = createPlaceholder label "Proxy"
 proxyCreateServer :: Text -> IO (Ref Group)
 proxyCreateServer label = createPlaceholder label "Proxy Server"
 
-proxyCreateInput :: Text -> IO (Ref Group)
-proxyCreateInput label = createPlaceholder label "Proxy Server Input Data"
+inputAppend :: (Ref TextBuffer) -> Text -> IO ()
+inputAppend buf msg = do
+    appendToBuffer buf msg
+    appendToBuffer buf "\n"
+
+
+proxyCreateInput :: Text -> IO (Text -> IO (), (Ref Group))
+proxyCreateInput label = do
+    let CommonRectangles
+            { contentRect
+            , contentBodyRect
+            } = commonRectangles
+
+    gr <- groupNew contentRect (Just label)
+    setBox gr DownBox
+    setResizable gr (Nothing :: Maybe (Ref Box))
+    _ <- commonCreateHeader "Proxy Server Input Data"
+
+    disp <- textDisplayNew contentBodyRect Nothing
+    buf <- textBufferNew Nothing Nothing
+    setBuffer disp (Just buf)
+
+    setResizable gr (Just disp)
+    end gr
+    hide gr
+
+    return ((inputAppend buf), gr)
 
 proxyCreateForwarded :: Text -> IO (Ref Group)
 proxyCreateForwarded label = createPlaceholder label "Proxy Server Forwarded Data"

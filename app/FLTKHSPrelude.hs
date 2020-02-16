@@ -12,10 +12,6 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
---
--- |
--- Custom Prelude
---
 
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -25,12 +21,12 @@
 {-# LANGUAGE StrictData #-}
 
 module FLTKHSPrelude
-    ( Alignments(..), AlignType(..), Box, Boxtype(..), FontSize(..), Group
-    , Rectangle, Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+    ( Alignments(..), AlignType(..), Box, Boxtype(..), DoubleWindow, FontSize(..)
+    , Group, Rectangle, Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
     , add, appendToBuffer
     , boxNew
     , doubleWindowNew
-    , fltkhsRun, fromRectangle
+    , fltkhsAwake, fltkhsLock, fltkhsRun, fltkhsUnlock, fromRectangle
     , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, groupNew
     , hide, end
     , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable, setShowroot
@@ -38,11 +34,12 @@ module FLTKHSPrelude
     , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
     ) where
 
-import Prelude (IO, Int)
+import Prelude (IO, Int, Bool)
 import qualified Graphics.UI.FLTK.LowLevel.FL as FL
 import Graphics.UI.FLTK.LowLevel.Fl_Enumerations (Alignments(..), AlignType(..), Boxtype(..))
 import Graphics.UI.FLTK.LowLevel.FLTKHS
-        ( Box, FontSize(..), Group, Rectangle, Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+        ( Box, DoubleWindow, FontSize(..), Group, Rectangle, Ref, Size
+        , TextBuffer, TextDisplay, Tree, TreeReasonType(..)
         , add, appendToBuffer
         , boxNew
         , doubleWindowNew
@@ -56,3 +53,12 @@ import Graphics.UI.FLTK.LowLevel.FLTKHS
 
 fltkhsRun :: IO Int
 fltkhsRun = FL.run
+
+fltkhsLock :: IO Bool
+fltkhsLock = FL.lock
+
+fltkhsUnlock :: IO ()
+fltkhsUnlock = FL.unlock
+
+fltkhsAwake :: IO ()
+fltkhsAwake = FL.awake

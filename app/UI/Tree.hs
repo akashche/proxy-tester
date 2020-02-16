@@ -31,23 +31,23 @@ import FLTKHSPrelude
 import UI.About
 import UI.Common
 import UI.Debug
-import UI.Destination
+-- import UI.Destination
 import UI.Proxy
 
-treeElements :: Vector (Text, Text -> IO (Ref Group))
-treeElements = fromList
-    [ ("Destination", destinationCreateRoot)
-    , ("Destination/Server", destinationCreateServer)
-    , ("Destination/Input", destinationCreateInput)
-    , ("Destination/Output", destinationCreateOutput)
-    , ("Proxy", proxyCreateRoot)
-    , ("Proxy/Server", proxyCreateServer)
-    , ("Proxy/Input", proxyCreateInput)
-    , ("Proxy/Forwarded", proxyCreateForwarded)
-    , ("Proxy/Received", proxyCreateReceived)
-    , ("Proxy/Output", proxyCreateOutput)
-    , ("About", aboutCreate)
-    ]
+-- treeElements :: Vector (Text, Text -> IO (Ref Group))
+-- treeElements = fromList
+--     [ ("Destination", destinationCreateRoot)
+--     , ("Destination/Server", destinationCreateServer)
+--     , ("Destination/Input", destinationCreateInput)
+--     , ("Destination/Output", destinationCreateOutput)
+--     , ("Proxy", proxyCreateRoot)
+--     , ("Proxy/Server", proxyCreateServer)
+--     , ("Proxy/Input", proxyCreateInput)
+--     , ("Proxy/Forwarded", proxyCreateForwarded)
+--     , ("Proxy/Received", proxyCreateReceived)
+--     , ("Proxy/Output", proxyCreateOutput)
+--     , ("About", aboutCreate)
+--     ]
 
 showGroup :: Vector (Ref Group) -> Text -> IO ()
 showGroup groups name = do
@@ -71,7 +71,7 @@ treeCallback debug groups tree = do
         showGroup groups path
     return ()
 
-treeCreate :: Ref TextDisplay -> IO (Ref Tree)
+treeCreate :: Ref TextDisplay -> IO (CommonContext, (Ref Tree))
 treeCreate debugDisp = do
     let CommonRectangles {treeRect} = commonRectangles
 
@@ -79,14 +79,32 @@ treeCreate debugDisp = do
     setShowroot tree False
     end tree
 
-    groups <- forM treeElements $ \(name, fun) -> do
-        _ <- add tree name
-        gr <- fun name
-        return gr
+    let proxyRootName = "Proxy"
+    _ <- add tree proxyRootName
+    proxyRootGroup <- proxyCreateRoot proxyRootName
+
+    let proxyInputName = "Proxy/Input"
+    _ <- add tree proxyInputName
+    (proxyInputAppend, proxyInputGroup) <- proxyCreateInput proxyInputName
+
+    let aboutName = "About"
+    _ <- add tree aboutName
+    aboutGroup <- aboutCreate aboutName
+
+    let groups = fromList
+            [ proxyRootGroup
+            , proxyInputGroup
+            , aboutGroup
+            ]
 
     let debug = debugMessage debugDisp
     setCallback tree (treeCallback debug groups)
 
     showGroup groups "About"
 
-    return tree
+    let ctx = CommonContext
+            { showContentGroup = showGroup groups
+            , proxyInputAppend = proxyInputAppend
+            }
+
+    return (ctx, tree)

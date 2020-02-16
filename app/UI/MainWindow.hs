@@ -20,37 +20,36 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Main where
+module UI.MainWindow
+    ( mainWindowCreate
+    ) where
 
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
-import Control.Concurrent (forkOS, threadDelay)
 
 import UI.Common
-import UI.MainWindow
+import UI.Debug
+import UI.Tree
 
-main :: IO ()
-main = do
-    (ctx, window) <- mainWindowCreate
-    showWidget window
+mainWindowCreate :: IO (CommonContext, (Ref DoubleWindow))
+mainWindowCreate = do
+    let CommonConstants
+            { windowWidth
+            , windowMinWidth
+            , windowHeight
+            , windowMinHeight
+            } = commonConstants
+    let CommonRectangles { tileRect } = commonRectangles
+    let ws = toSize (windowWidth, windowHeight)
 
-    let CommonContext
-            { showContentGroup
-            , proxyInputAppend
-            } = ctx
-
-    _ <- fltkhsLock
-
-    showContentGroup "About"
-
-    _ <- forkOS $ do
-        threadDelay 3000000
-        _ <- fltkhsLock
-        proxyInputAppend "Hello"
-        _ <- fltkhsUnlock
-        _ <- fltkhsAwake
-        return ()
-
-    _ <- fltkhsRun
-    return ()
+    window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
+    sizeRange window windowMinWidth windowMinHeight
+    setResizable window (Nothing :: Maybe (Ref Group))
+    debugDisp <- debugCreate
+    tile <- tileNew tileRect Nothing
+    (ctx, tree) <- treeCreate debugDisp
+    setResizable window (Just tree)
+    end tile
+    end window
+    return (ctx, window)

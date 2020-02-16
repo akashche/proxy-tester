@@ -23,6 +23,7 @@
 module UI.Common
     ( CommonConstants(..)
     , CommonRectangles(..)
+    , CommonContext(..)
     , commonConstants
     , commonRectangles
     , commonCreateHeader
@@ -45,7 +46,7 @@ data CommonConstants = CommonConstants
 
 commonConstants :: CommonConstants
 commonConstants = CommonConstants
-    { borderSize = 5
+    { borderSize = 10
     , headerHeight = 40
     , windowWidth = 640
     , windowMinWidth = 320
@@ -79,9 +80,14 @@ commonRectangles =
                 { tileRect = toRectangle (0, 0, ww, wh - dh)
                 , treeRect = toRectangle (0, 0, tw, wh - dh)
                 , contentRect = toRectangle (tw, 0, ww - tw , wh - dh)
-                , contentBodyRect = toRectangle (tw + bs, bs + hh, ww - tw - (bs*2), wh - dh - hh - (bs*2))
+                , contentBodyRect = toRectangle (tw, bs + hh, ww - tw, wh - dh - hh - bs)
                 , debugRect = toRectangle (0, wh - dh, ww, dh)
                 }
+
+data CommonContext = CommonContext
+    { showContentGroup :: Text -> IO ()
+    , proxyInputAppend :: Text -> IO ()
+    }
 
 commonCreateHeader :: Text -> IO (Ref Box)
 commonCreateHeader label = do
