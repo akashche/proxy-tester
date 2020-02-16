@@ -20,36 +20,36 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Main where
+module UI.About
+    ( aboutCreate
+    ) where
 
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
 import UI.Common
-import UI.Debug
-import UI.Tree
 
-main :: IO ()
-main = do
-    let CommonConstants
-            { windowWidth
-            , windowMinWidth
-            , windowHeight
-            , windowMinHeight
-            } = commonConstants
-    let CommonRectangles { tileRect } = commonRectangles
-    let ws = toSize (windowWidth, windowHeight)
+aboutCreate :: Text -> IO (Ref Group)
+aboutCreate label = do
+    let CommonRectangles
+            { contentRect
+            , contentBodyRect
+            } = commonRectangles
 
-    window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
-    sizeRange window windowMinWidth windowMinHeight
-    setResizable window (Nothing :: Maybe (Ref Group))
-    debugDisp <- debugCreate
-    tile <- tileNew tileRect Nothing
-    tree <- treeCreate debugDisp
-    setResizable window (Just tree)
-    end tile
-    end window
-    showWidget window
-    _ <- fltkhsRun
-    return ()
+    gr <- groupNew contentRect (Just label)
+    setBox gr DownBox
+    setResizable gr (Nothing :: Maybe (Ref Box))
+    _ <- commonCreateHeader "About"
+    body <- boxNew contentBodyRect (Just
+            "Application for testing HTTP proxy support")
+    setAlign body (Alignments
+            [ AlignTypeCenter
+            , AlignTypeTop
+            , AlignTypeInside
+            , AlignTypeWrap
+            ])
+    setResizable gr (Just body)
+    end gr
+    hide gr
+    return gr

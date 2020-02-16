@@ -20,36 +20,33 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Main where
+module UI.Debug
+    ( debugCreate
+    , debugMessage
+    ) where
 
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
 import UI.Common
-import UI.Debug
-import UI.Tree
 
-main :: IO ()
-main = do
-    let CommonConstants
-            { windowWidth
-            , windowMinWidth
-            , windowHeight
-            , windowMinHeight
-            } = commonConstants
-    let CommonRectangles { tileRect } = commonRectangles
-    let ws = toSize (windowWidth, windowHeight)
+debugCreate :: IO (Ref TextDisplay)
+debugCreate = do
+    let CommonRectangles {debugRect} = commonRectangles
 
-    window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
-    sizeRange window windowMinWidth windowMinHeight
-    setResizable window (Nothing :: Maybe (Ref Group))
-    debugDisp <- debugCreate
-    tile <- tileNew tileRect Nothing
-    tree <- treeCreate debugDisp
-    setResizable window (Just tree)
-    end tile
-    end window
-    showWidget window
-    _ <- fltkhsRun
-    return ()
+    disp <- textDisplayNew debugRect Nothing
+    buf <- textBufferNew Nothing Nothing
+    setBuffer disp (Just buf)
+    debugMessage disp "Debug:"
+    end disp
+    return disp
+
+debugMessage :: Ref TextDisplay -> Text -> IO ()
+debugMessage disp msg = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> do
+            appendToBuffer buf msg
+            appendToBuffer buf "\n"
+        Nothing -> return ()
