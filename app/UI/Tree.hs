@@ -28,26 +28,14 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
+import Actions
 import UI.About
 import UI.Common
-import UI.Debug
--- import UI.Destination
+import UI.Destination
 import UI.Proxy
+import UI.Status
 
--- treeElements :: Vector (Text, Text -> IO (Ref Group))
--- treeElements = fromList
---     [ ("Destination", destinationCreateRoot)
---     , ("Destination/Server", destinationCreateServer)
---     , ("Destination/Input", destinationCreateInput)
---     , ("Destination/Output", destinationCreateOutput)
---     , ("Proxy", proxyCreateRoot)
---     , ("Proxy/Server", proxyCreateServer)
---     , ("Proxy/Input", proxyCreateInput)
---     , ("Proxy/Forwarded", proxyCreateForwarded)
---     , ("Proxy/Received", proxyCreateReceived)
---     , ("Proxy/Output", proxyCreateOutput)
---     , ("About", aboutCreate)
---     ]
+type TreeResult = (Ref Tree, ActionsUI)
 
 showGroup :: Vector (Ref Group) -> Text -> IO ()
 showGroup groups name = do
@@ -59,7 +47,7 @@ showGroup groups name = do
             hide gr
 
 treeCallback :: (Text -> IO ()) -> Vector (Ref Group) -> Ref Tree -> IO ()
-treeCallback debug groups tree = do
+treeCallback statusAppend groups tree = do
     (Just item) <- getCallbackItem tree
     label <- getLabel item
     (Just parent) <- getParent item
@@ -67,44 +55,80 @@ treeCallback debug groups tree = do
     let path = if "ROOT" == parentLabel then label else parentLabel <> "/" <> label
     reason <- getCallbackReason tree
     when (TreeReasonSelected == reason) $ do
-        debug path
+        statusAppend path
         showGroup groups path
     return ()
 
-treeCreate :: Ref TextDisplay -> IO (CommonContext, (Ref Tree))
-treeCreate debugDisp = do
+treeCreate :: ActionsBackground -> Ref TextDisplay -> IO TreeResult
+treeCreate _ab statusDisp = do
     let CommonRectangles {treeRect} = commonRectangles
 
     tree <- treeNew treeRect Nothing
     setShowroot tree False
     end tree
 
-    let proxyRootName = "Proxy"
-    _ <- add tree proxyRootName
-    proxyRootGroup <- proxyCreateRoot proxyRootName
+    let proxyRootLabel = "Proxy"
+    _ <- add tree proxyRootLabel
+    proxyRootGroup <- proxyCreateRoot proxyRootLabel
 
-    let proxyInputName = "Proxy/Input"
-    _ <- add tree proxyInputName
-    (proxyInputAppend, proxyInputGroup) <- proxyCreateInput proxyInputName
+    let proxyInputLabel = "Proxy/Input"
+    _ <- add tree proxyInputLabel
+    (proxyInputGroup, proxyInputAppend) <- proxyCreateInput proxyInputLabel
 
-    let aboutName = "About"
-    _ <- add tree aboutName
-    aboutGroup <- aboutCreate aboutName
+    let proxyForwardedLabel = "Proxy/Forwarded"
+    _ <- add tree proxyForwardedLabel
+    (proxyForwardedGroup, proxyForwardedAppend) <- proxyCreateForwarded proxyForwardedLabel
+
+    let proxyReceivedLabel = "Proxy/Received"
+    _ <- add tree proxyReceivedLabel
+    (proxyReceivedGroup, proxyReceivedAppend) <- proxyCreateReceived proxyReceivedLabel
+
+    let proxyOutputLabel = "Proxy/Output"
+    _ <- add tree proxyOutputLabel
+    (proxyOutputGroup, proxyOutputAppend) <- proxyCreateOutput proxyOutputLabel
+
+    let destRootLabel = "Destination"
+    _ <- add tree destRootLabel
+    destRootGroup <- destinationCreateRoot destRootLabel
+
+    let destInputLabel = "Destination/Input"
+    _ <- add tree destInputLabel
+    (destInputGroup, destInputAppend) <- destinationCreateInput destInputLabel
+
+    let destOutputLabel = "Destination/Output"
+    _ <- add tree destOutputLabel
+    (destOutputGroup, destOutputAppend) <- destinationCreateOutput destOutputLabel
+
+    let aboutLabel = "About"
+    _ <- add tree aboutLabel
+    aboutGroup <- aboutCreate aboutLabel
 
     let groups = fromList
             [ proxyRootGroup
             , proxyInputGroup
+            , proxyForwardedGroup
+            , proxyReceivedGroup
+            , proxyOutputGroup
+            , destRootGroup
+            , destInputGroup
+            , destOutputGroup
             , aboutGroup
             ]
 
-    let debug = debugMessage debugDisp
-    setCallback tree (treeCallback debug groups)
+    let statusAppend = statusMessage statusDisp
+    setCallback tree (treeCallback statusAppend groups)
 
     showGroup groups "About"
 
-    let ctx = CommonContext
-            { showContentGroup = showGroup groups
+    let actions = ActionsUI
+            { statusAppend = statusAppend
+            , showContentGroup = showGroup groups
             , proxyInputAppend = proxyInputAppend
+            , proxyForwardedAppend = proxyForwardedAppend
+            , proxyReceivedAppend = proxyReceivedAppend
+            , proxyOutputAppend = proxyOutputAppend
+            , destInputAppend = destInputAppend
+            , destOutputAppend = destOutputAppend
             }
 
-    return (ctx, tree)
+    return (tree, actions)

@@ -20,9 +20,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Debug
-    ( debugCreate
-    , debugMessage
+module UI.Status
+    ( statusCreate
+    , statusMessage
     ) where
 
 import Prelude ()
@@ -31,22 +31,19 @@ import FLTKHSPrelude
 
 import UI.Common
 
-debugCreate :: IO (Ref TextDisplay)
-debugCreate = do
-    let CommonRectangles {debugRect} = commonRectangles
+statusCreate :: IO (Ref TextDisplay)
+statusCreate = do
+    let CommonRectangles {statusRect} = commonRectangles
 
-    disp <- textDisplayNew debugRect Nothing
+    disp <- textDisplayNew statusRect Nothing
+    setTextsize disp (FontSize 12)
     buf <- textBufferNew Nothing Nothing
     setBuffer disp (Just buf)
-    debugMessage disp "Debug:"
+    statusMessage disp "initialized"
     end disp
     return disp
 
-debugMessage :: Ref TextDisplay -> Text -> IO ()
-debugMessage disp msg = do
-    mbuf <- getBuffer disp
-    case mbuf of
-        Just buf -> do
-            appendToBuffer buf msg
-            appendToBuffer buf "\n"
-        Nothing -> return ()
+statusMessage :: Ref TextDisplay -> Text -> IO ()
+statusMessage disp msg = do
+    date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
+    commonTextDisplayMessage disp (date <> " " <> msg)

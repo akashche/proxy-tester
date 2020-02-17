@@ -22,7 +22,6 @@
 
 module UI.Proxy
     ( proxyCreateRoot
-    , proxyCreateServer
     , proxyCreateInput
     , proxyCreateForwarded
     , proxyCreateReceived
@@ -35,8 +34,10 @@ import FLTKHSPrelude
 
 import UI.Common
 
-createPlaceholder :: Text -> Text -> IO (Ref Group)
-createPlaceholder label header = do
+type ProxyResult = (Ref Group, Text -> IO ())
+
+proxyCreateRoot :: Text -> IO (Ref Group)
+proxyCreateRoot label = do
     let CommonRectangles
             { contentRect
             , contentBodyRect
@@ -45,7 +46,7 @@ createPlaceholder label header = do
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader header
+    _ <- commonCreateHeader "Proxy Server"
     body <- boxNew contentBodyRect (Just
             "[TODO]")
     setAlign body (Alignments
@@ -59,45 +60,14 @@ createPlaceholder label header = do
     hide gr
     return gr
 
-proxyCreateRoot :: Text -> IO (Ref Group)
-proxyCreateRoot label = createPlaceholder label "Proxy"
+proxyCreateInput :: Text -> IO ProxyResult
+proxyCreateInput label = commonCreateTextDisplayGroup label "Proxy Server Input Data"
 
-proxyCreateServer :: Text -> IO (Ref Group)
-proxyCreateServer label = createPlaceholder label "Proxy Server"
+proxyCreateForwarded :: Text -> IO ProxyResult
+proxyCreateForwarded label = commonCreateTextDisplayGroup label "Proxy Server Forwarded Data"
 
-inputAppend :: (Ref TextBuffer) -> Text -> IO ()
-inputAppend buf msg = do
-    appendToBuffer buf msg
-    appendToBuffer buf "\n"
+proxyCreateReceived :: Text -> IO ProxyResult
+proxyCreateReceived label = commonCreateTextDisplayGroup label "Proxy Server Received Data"
 
-
-proxyCreateInput :: Text -> IO (Text -> IO (), (Ref Group))
-proxyCreateInput label = do
-    let CommonRectangles
-            { contentRect
-            , contentBodyRect
-            } = commonRectangles
-
-    gr <- groupNew contentRect (Just label)
-    setBox gr DownBox
-    setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader "Proxy Server Input Data"
-
-    disp <- textDisplayNew contentBodyRect Nothing
-    buf <- textBufferNew Nothing Nothing
-    setBuffer disp (Just buf)
-
-    setResizable gr (Just disp)
-    end gr
-    hide gr
-
-    return ((inputAppend buf), gr)
-
-proxyCreateForwarded :: Text -> IO (Ref Group)
-proxyCreateForwarded label = createPlaceholder label "Proxy Server Forwarded Data"
-
-proxyCreateReceived :: Text -> IO (Ref Group)
-proxyCreateReceived label = createPlaceholder label "Proxy Server Received Data"
-
-proxyCreateOutput :: Text -> IO (Ref Group)
-proxyCreateOutput label = createPlaceholder label "Proxy Server Output Data"
+proxyCreateOutput :: Text -> IO ProxyResult
+proxyCreateOutput label = commonCreateTextDisplayGroup label "Proxy Server Output Data"

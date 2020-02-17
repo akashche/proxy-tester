@@ -23,10 +23,11 @@
 module UI.Common
     ( CommonConstants(..)
     , CommonRectangles(..)
-    , CommonContext(..)
     , commonConstants
     , commonRectangles
     , commonCreateHeader
+    , commonCreateTextDisplayGroup
+    , commonTextDisplayMessage
     ) where
 
 import Prelude ()
@@ -41,8 +42,8 @@ data CommonConstants = CommonConstants
     , windowHeight :: Int
     , windowMinHeight :: Int
     , treeWidth :: Int
-    , debugHeight :: Int
-    } deriving (Generic, Show)
+    , statusHeight :: Int
+    } deriving (Show)
 
 commonConstants :: CommonConstants
 commonConstants = CommonConstants
@@ -53,16 +54,17 @@ commonConstants = CommonConstants
     , windowHeight = 480
     , windowMinHeight = 200
     , treeWidth = 200
-    , debugHeight = 0 -- 200
+    , statusHeight = 100
     }
 
 data CommonRectangles = CommonRectangles
-    { tileRect :: Rectangle
+    { windowRect :: Rectangle
+    , tileRect :: Rectangle
     , treeRect :: Rectangle
     , contentRect :: Rectangle
     , contentBodyRect :: Rectangle
-    , debugRect :: Rectangle
-    } deriving (Generic, Show)
+    , statusRect :: Rectangle
+    } deriving (Show)
 
 commonRectangles :: CommonRectangles
 commonRectangles =
@@ -70,34 +72,29 @@ commonRectangles =
         CommonConstants
                 { windowWidth = ww
                 , windowHeight = wh
-                , debugHeight = dh
+                , statusHeight = sh
                 , treeWidth = tw
                 , headerHeight = hh
-                , borderSize = bs
                 } = commonConstants
     in
         CommonRectangles
-                { tileRect = toRectangle (0, 0, ww, wh - dh)
-                , treeRect = toRectangle (0, 0, tw, wh - dh)
-                , contentRect = toRectangle (tw, 0, ww - tw , wh - dh)
-                , contentBodyRect = toRectangle (tw, bs + hh, ww - tw, wh - dh - hh - bs)
-                , debugRect = toRectangle (0, wh - dh, ww, dh)
+                { windowRect = toRectangle (0, 0, ww, wh)
+                , tileRect = toRectangle (0, 0, ww, wh - sh)
+                , treeRect = toRectangle (0, 0, tw, wh - sh)
+                , contentRect = toRectangle (tw, 0, ww - tw, wh - sh)
+                , contentBodyRect = toRectangle (tw, hh, ww - tw, wh - sh - hh)
+                , statusRect = toRectangle (0, wh - sh, ww, sh)
                 }
-
-data CommonContext = CommonContext
-    { showContentGroup :: Text -> IO ()
-    , proxyInputAppend :: Text -> IO ()
-    }
 
 commonCreateHeader :: Text -> IO (Ref Box)
 commonCreateHeader label = do
     let CommonConstants
-            { borderSize = b
+            { borderSize = bs
             , headerHeight = hh
             } = commonConstants
     let CommonRectangles {contentRect} = commonRectangles
     let (x, y, w, _) = fromRectangle contentRect
-    let rect = toRectangle (x + b, y + b, w - (b*2), hh)
+    let rect = toRectangle (x + bs, y, w - (bs*2), hh)
     box <- boxNew rect (Just label)
     setAlign box (Alignments
             [ AlignTypeCenter
@@ -106,3 +103,37 @@ commonCreateHeader label = do
             ])
     setLabelsize box (FontSize 18)
     return box
+
+commonCreateTextDisplayGroup :: Text -> Text -> IO (Ref Group, Text -> IO ())
+commonCreateTextDisplayGroup label header = do
+    let CommonRectangles
+            { contentRect
+            , contentBodyRect
+            } = commonRectangles
+
+    gr <- groupNew contentRect (Just label)
+    setBox gr DownBox
+    setResizable gr (Nothing :: Maybe (Ref Box))
+    _ <- commonCreateHeader header
+
+    disp <- textDisplayNew contentBodyRect Nothing
+    setTextsize disp (FontSize 12)
+    buf <- textBufferNew Nothing Nothing
+    setBuffer disp (Just buf)
+    end disp
+
+    let append = commonTextDisplayMessage disp
+
+    setResizable gr (Just disp)
+    end gr
+    hide gr
+    return (gr, append)
+
+commonTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
+commonTextDisplayMessage disp msg = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> do
+            appendToBuffer buf msg
+            appendToBuffer buf "\n"
+        Nothing -> return ()

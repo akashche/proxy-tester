@@ -28,28 +28,36 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
+import Actions
 import UI.Common
-import UI.Debug
+import UI.Status
 import UI.Tree
 
-mainWindowCreate :: IO (CommonContext, (Ref DoubleWindow))
-mainWindowCreate = do
+type MainWindow = (Ref DoubleWindow, ActionsUI)
+
+mainWindowCreate :: ActionsBackground -> IO MainWindow
+mainWindowCreate ab = do
     let CommonConstants
             { windowWidth
             , windowMinWidth
             , windowHeight
             , windowMinHeight
             } = commonConstants
-    let CommonRectangles { tileRect } = commonRectangles
+    let CommonRectangles
+            { windowRect
+            , tileRect
+            } = commonRectangles
     let ws = toSize (windowWidth, windowHeight)
 
     window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
     sizeRange window windowMinWidth windowMinHeight
     setResizable window (Nothing :: Maybe (Ref Group))
-    debugDisp <- debugCreate
+    mainTile <- tileNew windowRect Nothing
+    statusDisp <- statusCreate
     tile <- tileNew tileRect Nothing
-    (ctx, tree) <- treeCreate debugDisp
+    (tree, actions) <- treeCreate ab statusDisp
     setResizable window (Just tree)
     end tile
+    end mainTile
     end window
-    return (ctx, window)
+    return (window, actions)

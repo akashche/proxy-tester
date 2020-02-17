@@ -22,7 +22,6 @@
 
 module UI.Destination
     ( destinationCreateRoot
-    , destinationCreateServer
     , destinationCreateInput
     , destinationCreateOutput
     ) where
@@ -33,8 +32,10 @@ import FLTKHSPrelude
 
 import UI.Common
 
-createPlaceholder :: Text -> Text -> IO (Ref Group)
-createPlaceholder label header = do
+type DestResult = (Ref Group, Text -> IO ())
+
+destinationCreateRoot :: Text -> IO (Ref Group)
+destinationCreateRoot label = do
     let CommonRectangles
             { contentRect
             , contentBodyRect
@@ -43,7 +44,7 @@ createPlaceholder label header = do
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader header
+    _ <- commonCreateHeader "Destination Server"
     body <- boxNew contentBodyRect (Just
             "[TODO]")
     setAlign body (Alignments
@@ -57,14 +58,8 @@ createPlaceholder label header = do
     hide gr
     return gr
 
-destinationCreateRoot :: Text -> IO (Ref Group)
-destinationCreateRoot label = createPlaceholder label "Destination"
+destinationCreateInput :: Text -> IO DestResult
+destinationCreateInput label = commonCreateTextDisplayGroup label "Destination Server Input"
 
-destinationCreateServer :: Text -> IO (Ref Group)
-destinationCreateServer label = createPlaceholder label "Destination Server"
-
-destinationCreateInput :: Text -> IO (Ref Group)
-destinationCreateInput label = createPlaceholder label "Destination Server Input"
-
-destinationCreateOutput :: Text -> IO (Ref Group)
-destinationCreateOutput label = createPlaceholder label "Destination Server Output"
+destinationCreateOutput :: Text -> IO DestResult
+destinationCreateOutput label = commonCreateTextDisplayGroup label "Destination Server Output"

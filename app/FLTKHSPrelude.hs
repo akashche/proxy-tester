@@ -29,7 +29,8 @@ module FLTKHSPrelude
     , fltkhsAwake, fltkhsLock, fltkhsRun, fltkhsUnlock, fromRectangle
     , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, groupNew
     , hide, end
-    , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable, setShowroot
+    , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
+    , setShowroot, setTextsize
     , showWidget, sizeRange
     , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
     ) where
@@ -46,7 +47,8 @@ import Graphics.UI.FLTK.LowLevel.FLTKHS
         , fromRectangle
         , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, groupNew
         , hide, end
-        , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable, setShowroot
+        , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
+        , setShowroot, setTextsize
         , showWidget, sizeRange
         , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
         )

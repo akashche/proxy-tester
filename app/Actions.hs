@@ -20,37 +20,29 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Main where
+module Actions
+    ( ActionsUI(..)
+    , ActionsBackground(..)
+    ) where
 
 import Prelude ()
 import VtUtils.Prelude
-import FLTKHSPrelude
-import qualified Control.Concurrent as Concurrent
-import qualified Data.Vector as Vector
 
-import Actions
-import UI.MainWindow
+data ActionsUI = ActionsUI
+    { statusAppend :: Text -> IO()
+    , showContentGroup :: Text -> IO ()
+    , proxyInputAppend :: Text -> IO ()
+    , proxyForwardedAppend :: Text -> IO ()
+    , proxyReceivedAppend :: Text -> IO ()
+    , proxyOutputAppend :: Text -> IO ()
+    , destInputAppend :: Text -> IO ()
+    , destOutputAppend :: Text -> IO ()
+    , proxyInputAppend :: Text -> IO ()
+    }
 
-main :: IO ()
-main = do
-    let ab = ActionsBackground
-    mw <- mainWindowCreate ab
-    let (window, actions) = mw
-    showWidget window
-    let ActionsUI {showContentGroup, proxyInputAppend} = actions
+data ActionsBackground = ActionsBackground
+    {
 
-    _ <- fltkhsLock
+    }
 
-    showContentGroup "About"
 
-    _ <- Concurrent.forkOS $ do
-        forM_ (Vector.replicate 5 (0 :: Int)) $ \_ -> do
-            Concurrent.threadDelay 3000000
-            _ <- fltkhsLock
-            proxyInputAppend "Hello"
-            _ <- fltkhsUnlock
-            _ <- fltkhsAwake
-            return ()
-
-    _ <- fltkhsRun
-    return ()
