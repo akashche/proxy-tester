@@ -51,26 +51,26 @@ startCallback statusAppend addr port stop start = do
 
 proxyCreateRoot :: Text -> (Text -> IO ()) -> IO (Ref Group)
 proxyCreateRoot label statusAppend = do
-    let CommonConstants
+    let UIConstants
             { borderSize = bs
             , formRowHeight = frh
             , formLabelWidth = flw
             , formInputWidth = fiw
             , buttonWidth = btw
             , buttonHeight = bth
-            } = commonConstants
-    let CommonRectangles
+            } = uiConstants
+    let UIRectangles
             { contentRect
             , contentBodyRect
             , formRect
             , buttonsPanelRect
-            } = commonRectangles
+            } = uiRectangles
     let (bx, by, _, _) = fromRectangle contentBodyRect
 
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader "Proxy Server"
+    _ <- uiCreateHeader "Proxy Server"
 
     body <- groupNew formRect Nothing
     setResizable gr (Just body)
@@ -79,31 +79,31 @@ proxyCreateRoot label statusAppend = do
 
     -- address
     addrLabel <- boxNew (toRectangle (bx, by + bs, flw, frh)) (Just "IP Address")
-    commonSetLabelAlign addrLabel
+    uiSetLabelAlign addrLabel
     addrInput <- inputNew (toRectangle (bx + flw + bs, by + bs, fiw, frh)) Nothing Nothing
     _ <- setValue addrInput "127.0.0.1" Nothing
 
     -- port
     portLabel <- boxNew (toRectangle (bx, by + bs*4, flw, frh)) (Just "TCP Port")
-    commonSetLabelAlign portLabel
+    uiSetLabelAlign portLabel
     portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
     _ <- setValue portInput "8082" Nothing
 
     -- dest address
     destAddrLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "Dest IP Address")
-    commonSetLabelAlign destAddrLabel
+    uiSetLabelAlign destAddrLabel
     destAddrInput <- inputNew (toRectangle (bx + flw + bs, by + bs*7, fiw, frh)) Nothing Nothing
     _ <- setValue destAddrInput "127.0.0.1" Nothing
 
     -- dest port
     destPortLabel <- boxNew (toRectangle (bx, by + bs*10, flw, frh)) (Just "Dest TCP Port")
-    commonSetLabelAlign destPortLabel
+    uiSetLabelAlign destPortLabel
     destPortInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*10, fiw, frh)) Nothing
     _ <- setValue destPortInput "8081" Nothing
 
     -- invisible
     invLabel <- boxNew (toRectangle (bx, by + bs*13, flw, frh)) (Just "")
-    commonSetLabelAlign invLabel
+    uiSetLabelAlign invLabel
     invBox <- boxNew (toRectangle (bx + flw + bs, by + bs*13, fiw, frh)) Nothing
     setResizable form (Just invBox)
     hide invBox
@@ -128,13 +128,13 @@ proxyCreateRoot label statusAppend = do
     return gr
 
 proxyCreateInput :: Text -> IO ProxyResult
-proxyCreateInput label = commonCreateTextDisplayGroup label "Proxy Server Input Data"
+proxyCreateInput label = uiCreateTextDisplayGroup label "Proxy Server Input Data"
 
 proxyCreateForwarded :: Text -> IO ProxyResult
-proxyCreateForwarded label = commonCreateTextDisplayGroup label "Proxy Server Forwarded Data"
+proxyCreateForwarded label = uiCreateTextDisplayGroup label "Proxy Server Forwarded Data"
 
 proxyCreateReceived :: Text -> IO ProxyResult
-proxyCreateReceived label = commonCreateTextDisplayGroup label "Proxy Server Received Data"
+proxyCreateReceived label = uiCreateTextDisplayGroup label "Proxy Server Received Data"
 
 proxyCreateOutput :: Text -> IO ProxyResult
-proxyCreateOutput label = commonCreateTextDisplayGroup label "Proxy Server Output Data"
+proxyCreateOutput label = uiCreateTextDisplayGroup label "Proxy Server Output Data"

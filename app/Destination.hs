@@ -55,7 +55,7 @@ startCallback statusAppend form da start = do
     let DestinationAppenders {input = input, output = output} = da
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
-    rv <- commonGetTextDisplayValue resp
+    rv <- uiGetTextDisplayValue resp
     deactivate start
     let dsa = DestinationServerOptions
             { input = input
@@ -75,26 +75,26 @@ startCallback statusAppend form da start = do
 
 destinationCreateRoot :: Text -> (Text -> IO ()) -> DestinationAppenders -> IO (Ref Group)
 destinationCreateRoot label statusAppend da = do
-    let CommonConstants
+    let UIConstants
             { borderSize = bs
             , formRowHeight = frh
             , formLabelWidth = flw
             , formInputWidth = fiw
             , buttonWidth = btw
             , buttonHeight = bth
-            } = commonConstants
-    let CommonRectangles
+            } = uiConstants
+    let UIRectangles
             { contentRect
             , contentBodyRect
             , formRect
             , buttonsPanelRect
-            } = commonRectangles
+            } = uiRectangles
     let (bx, by, _, _) = fromRectangle contentBodyRect
 
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader "Destination Server"
+    _ <- uiCreateHeader "Destination Server"
 
     body <- groupNew formRect Nothing
     setResizable gr (Just body)
@@ -103,24 +103,24 @@ destinationCreateRoot label statusAppend da = do
 
     -- address
     addrLabel <- boxNew (toRectangle (bx, by + bs, flw, frh)) (Just "IP Address")
-    commonSetLabelAlign addrLabel
+    uiSetLabelAlign addrLabel
     addrInput <- inputNew (toRectangle (bx + flw + bs, by + bs, fiw, frh)) Nothing Nothing
     _ <- setValue addrInput "127.0.0.1" Nothing
 
     -- port
     portLabel <- boxNew (toRectangle (bx, by + bs*4, flw, frh)) (Just "TCP Port")
-    commonSetLabelAlign portLabel
+    uiSetLabelAlign portLabel
     portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
     _ <- setValue portInput "8081" Nothing
 
     -- response
     respLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "Response Text")
-    commonSetLabelAlign respLabel
+    uiSetLabelAlign respLabel
     respDisp <- textDisplayNew (toRectangle (bx + flw + bs, by + bs*7, fiw*2, frh*8))Nothing
     setTextsize respDisp (FontSize 12)
     respBuf <- textBufferNew Nothing Nothing
     setBuffer respDisp (Just respBuf)
-    commonTextDisplayAppend respDisp "Hello from destination server"
+    uiTextDisplayAppend respDisp "Hello from destination server"
     end respDisp
     setResizable form (Just respDisp)
 
@@ -149,7 +149,7 @@ destinationCreateRoot label statusAppend da = do
     return gr
 
 destinationCreateInput :: Text -> IO DestinationDisplayResult
-destinationCreateInput label = commonCreateTextDisplayGroup label "Destination Server Input"
+destinationCreateInput label = uiCreateTextDisplayGroup label "Destination Server Input"
 
 destinationCreateOutput :: Text -> IO DestinationDisplayResult
-destinationCreateOutput label = commonCreateTextDisplayGroup label "Destination Server Output"
+destinationCreateOutput label = uiCreateTextDisplayGroup label "Destination Server Output"

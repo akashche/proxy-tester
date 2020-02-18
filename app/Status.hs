@@ -33,7 +33,7 @@ import UICommon
 
 statusCreate :: IO (Ref TextDisplay)
 statusCreate = do
-    let CommonRectangles {statusRect} = commonRectangles
+    let UIRectangles {statusRect} = uiRectangles
 
     disp <- textDisplayNew statusRect Nothing
     setTextsize disp (FontSize 12)
@@ -46,4 +46,4 @@ statusCreate = do
 statusMessage :: Ref TextDisplay -> Text -> IO ()
 statusMessage disp msg = do
     date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
-    commonTextDisplayAppend disp (date <> " " <> msg)
+    uiTextDisplayAppend disp (date <> " " <> msg)

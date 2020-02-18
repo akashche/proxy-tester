@@ -21,23 +21,23 @@
 {-# LANGUAGE StrictData #-}
 
 module UICommon
-    ( CommonConstants(..)
-    , CommonRectangles(..)
-    , commonConstants
-    , commonRectangles
-    , commonCreateHeader
-    , commonCreateTextDisplayGroup
-    , commonTextDisplayAppend
-    , commonTextDisplayMessage
-    , commonSetLabelAlign
-    , commonGetTextDisplayValue
+    ( UIConstants(..)
+    , UIRectangles(..)
+    , uiConstants
+    , uiRectangles
+    , uiCreateHeader
+    , uiCreateTextDisplayGroup
+    , uiTextDisplayAppend
+    , uiTextDisplayMessage
+    , uiSetLabelAlign
+    , uiGetTextDisplayValue
     ) where
 
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-data CommonConstants = CommonConstants
+data UIConstants = UIConstants
     { borderSize :: Int
     , headerHeight :: Int
     , windowWidth :: Int
@@ -54,8 +54,8 @@ data CommonConstants = CommonConstants
     , buttonHeight :: Int
     } deriving (Show)
 
-commonConstants :: CommonConstants
-commonConstants = CommonConstants
+uiConstants :: UIConstants
+uiConstants = UIConstants
     { borderSize = 10
     , headerHeight = 40
     , windowWidth = 640
@@ -72,7 +72,7 @@ commonConstants = CommonConstants
     , buttonHeight = 30
     }
 
-data CommonRectangles = CommonRectangles
+data UIRectangles = UIRectangles
     { windowRect :: Rectangle
     , tileRect :: Rectangle
     , treeRect :: Rectangle
@@ -83,19 +83,19 @@ data CommonRectangles = CommonRectangles
     , statusRect :: Rectangle
     } deriving (Show)
 
-commonRectangles :: CommonRectangles
-commonRectangles =
+uiRectangles :: UIRectangles
+uiRectangles =
     let
-        CommonConstants
+        UIConstants
                 { windowWidth = ww
                 , windowHeight = wh
                 , statusHeight = sh
                 , treeWidth = tw
                 , headerHeight = hh
                 , buttonsPanelHeight = bph
-                } = commonConstants
+                } = uiConstants
     in
-        CommonRectangles
+        UIRectangles
                 { windowRect = toRectangle (0, 0, ww, wh)
                 , tileRect = toRectangle (0, 0, ww, wh - sh)
                 , treeRect = toRectangle (0, 0, tw, wh - sh)
@@ -106,13 +106,13 @@ commonRectangles =
                 , statusRect = toRectangle (0, wh - sh, ww, sh)
                 }
 
-commonCreateHeader :: Text -> IO (Ref Box)
-commonCreateHeader label = do
-    let CommonConstants
+uiCreateHeader :: Text -> IO (Ref Box)
+uiCreateHeader label = do
+    let UIConstants
             { borderSize = bs
             , headerHeight = hh
-            } = commonConstants
-    let CommonRectangles {contentRect} = commonRectangles
+            } = uiConstants
+    let UIRectangles {contentRect} = uiRectangles
     let (x, y, w, _) = fromRectangle contentRect
     let rect = toRectangle (x + bs, y, w - (bs*2), hh)
     box <- boxNew rect (Just label)
@@ -124,17 +124,17 @@ commonCreateHeader label = do
     setLabelsize box (FontSize 18)
     return box
 
-commonCreateTextDisplayGroup :: Text -> Text -> IO (Ref Group, Text -> IO ())
-commonCreateTextDisplayGroup label header = do
-    let CommonRectangles
+uiCreateTextDisplayGroup :: Text -> Text -> IO (Ref Group, Text -> IO ())
+uiCreateTextDisplayGroup label header = do
+    let UIRectangles
             { contentRect
             , contentBodyRect
-            } = commonRectangles
+            } = uiRectangles
 
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader header
+    _ <- uiCreateHeader header
 
     disp <- textDisplayNew contentBodyRect Nothing
     setTextsize disp (FontSize 12)
@@ -142,15 +142,15 @@ commonCreateTextDisplayGroup label header = do
     setBuffer disp (Just buf)
     end disp
 
-    let append = commonTextDisplayMessage disp
+    let append = uiTextDisplayMessage disp
 
     setResizable gr (Just disp)
     end gr
     hide gr
     return (gr, append)
 
-commonTextDisplayAppend :: Ref TextDisplay -> Text -> IO ()
-commonTextDisplayAppend disp msg = do
+uiTextDisplayAppend :: Ref TextDisplay -> Text -> IO ()
+uiTextDisplayAppend disp msg = do
     mbuf <- getBuffer disp
     case mbuf of
         Just buf -> do
@@ -158,17 +158,17 @@ commonTextDisplayAppend disp msg = do
             appendToBuffer buf "\n"
         Nothing -> return ()
 
-commonTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
-commonTextDisplayMessage disp msg = do
+uiTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
+uiTextDisplayMessage disp msg = do
     _ <- fltkhsLock
     date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
-    commonTextDisplayAppend disp (date <> " " <> msg)
+    uiTextDisplayAppend disp (date <> " " <> msg)
     _ <- fltkhsUnlock
     _ <- fltkhsAwake
     return ()
 
-commonSetLabelAlign :: Ref Box -> IO ()
-commonSetLabelAlign box = do
+uiSetLabelAlign :: Ref Box -> IO ()
+uiSetLabelAlign box = do
     _ <- setAlign box (Alignments
             [ AlignTypeRight
             , AlignTypeCenter
@@ -177,8 +177,8 @@ commonSetLabelAlign box = do
             ])
     return ()
 
-commonGetTextDisplayValue :: Ref TextDisplay -> IO Text
-commonGetTextDisplayValue disp = do
+uiGetTextDisplayValue :: Ref TextDisplay -> IO Text
+uiGetTextDisplayValue disp = do
     mbuf <- getBuffer disp
     case mbuf of
         Just buf -> getText buf

@@ -61,7 +61,7 @@ treeCallback _status groups tree = do
 
 treeCreate :: Ref TextDisplay -> IO TreeResult
 treeCreate statusDisp = do
-    let CommonRectangles {treeRect} = commonRectangles
+    let UIRectangles {treeRect} = uiRectangles
     let statusAppend = statusMessage statusDisp
 
     tree <- treeNew treeRect Nothing

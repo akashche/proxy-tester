@@ -32,15 +32,15 @@ import UICommon
 
 aboutCreate :: Text -> IO (Ref Group)
 aboutCreate label = do
-    let CommonRectangles
+    let UIRectangles
             { contentRect
             , contentBodyRect
-            } = commonRectangles
+            } = uiRectangles
 
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader "About"
+    _ <- uiCreateHeader "About"
     body <- boxNew contentBodyRect (Just
             "Application for testing HTTP proxy support")
     setAlign body (Alignments

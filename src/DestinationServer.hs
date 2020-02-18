@@ -28,14 +28,11 @@ module DestinationServer
 
 import Prelude ()
 import VtUtils.Prelude
-import qualified Control.Concurrent as Concurrent
-import qualified Control.Concurrent.Async as Async
 import qualified Control.Concurrent.MVar as MVar
 import qualified Data.ByteString.Lazy as ByteStringLazy
-import qualified Data.String as String
 import qualified Network.HTTP.Types as HTTPTypes
-import qualified Network.Wai as Wai
-import qualified Network.Wai.Handler.Warp as Warp
+
+import ServerCommon
 
 data DestinationServerOptions = DestinationServerOptions
     { status :: Text -> IO ()
@@ -45,20 +42,6 @@ data DestinationServerOptions = DestinationServerOptions
     , port :: Int
     , response :: Text
     }
-
--- https://stackoverflow.com/a/45846292/314015
-runServerBackground :: (Text -> IO ()) -> MVar.MVar () -> Text -> Int -> Wai.Application -> IO ()
-runServerBackground status handle host port app = do
-    _ <- Concurrent.forkOS $
-        Async.race_ (MVar.takeMVar handle) $ do
-            _ <- catch ( do
-                    let wh = String.fromString $ unpack host
-                    let ds = Warp.defaultSettings
-                    let settings = Warp.setHost wh $ Warp.setPort port ds
-                    Warp.runSettings settings app )
-                (\(e::SomeException) -> status $ "Server stopped, message: [" <> (textShow e) <> "]")
-            return ()
-    return ()
 
 destinationServerStart :: DestinationServerOptions -> IO (MVar.MVar ())
 destinationServerStart da = do
@@ -72,7 +55,7 @@ destinationServerStart da = do
             } = da
     handle <- MVar.newEmptyMVar
     status $ "Starting server, host: " <> host <> " port: " <> (textShow port)
-    runServerBackground status handle host port $ \req respond -> do
+    serverRunBackground status handle host port $ \req respond -> do
         rt <- httpRequestBodyText req
         input (httpRequestPath req)
         input rt

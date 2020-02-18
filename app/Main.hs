@@ -35,16 +35,16 @@ type MainWindow = (Ref DoubleWindow, Actions)
 
 mainWindowCreate :: IO MainWindow
 mainWindowCreate = do
-    let CommonConstants
+    let UIConstants
             { windowWidth
             , windowMinWidth
             , windowHeight
             , windowMinHeight
-            } = commonConstants
-    let CommonRectangles
+            } = uiConstants
+    let UIRectangles
             { windowRect
             , tileRect
-            } = commonRectangles
+            } = uiRectangles
     let ws = toSize (windowWidth, windowHeight)
 
     window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
