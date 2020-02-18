@@ -36,26 +36,74 @@ import UI.Common
 
 type ProxyResult = (Ref Group, Text -> IO ())
 
-proxyCreateRoot :: Text -> IO (Ref Group)
-proxyCreateRoot label = do
+startCallback ::(Text -> IO ()) -> Ref Input -> Ref IntInput -> Ref Button -> Ref Button -> IO ()
+startCallback statusAppend addr port stop start = do
+    av <- getValue addr
+    pv <- getValue port
+    statusAppend ("start called, address: " <> av <> ", port: " <> (textShow pv))
+    deactivate start
+    setCallback stop $ \_ -> do
+        statusAppend "stop called"
+        deactivate stop
+        activate start
+        return ()
+    activate stop
+
+proxyCreateRoot :: Text -> (Text -> IO ()) -> IO (Ref Group)
+proxyCreateRoot label statusAppend = do
+    let CommonConstants
+            { borderSize = bs
+            , formRowHeight = frh
+            , formLabelWidth = flw
+            , formInputWidth = fiw
+            , buttonWidth = btw
+            , buttonHeight = bth
+            } = commonConstants
     let CommonRectangles
             { contentRect
             , contentBodyRect
+            , formRect
+            , buttonsPanelRect
             } = commonRectangles
+    let (bx, by, _, _) = fromRectangle contentBodyRect
 
     gr <- groupNew contentRect (Just label)
     setBox gr DownBox
     setResizable gr (Nothing :: Maybe (Ref Box))
     _ <- commonCreateHeader "Proxy Server"
-    body <- boxNew contentBodyRect (Just
-            "[TODO]")
-    setAlign body (Alignments
-            [ AlignTypeCenter
-            , AlignTypeTop
-            , AlignTypeInside
-            , AlignTypeWrap
-            ])
+
+    body <- groupNew formRect Nothing
     setResizable gr (Just body)
+    form <- groupNew formRect Nothing
+    setResizable form (Nothing :: Maybe (Ref Box))
+
+    -- address
+    addrLabel <- boxNew (toRectangle (bx, by + bs, flw, frh)) (Just "IP Address")
+    commonSetLabelAlign addrLabel
+    addrInput <- inputNew (toRectangle (bx + flw + bs, by + bs, fiw, frh)) Nothing Nothing
+    _ <- setValue addrInput "127.0.0.1" Nothing
+
+    -- port
+    portLabel <- boxNew (toRectangle (bx, by + bs*4, flw, frh)) (Just "TCP Port")
+    commonSetLabelAlign portLabel
+    portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
+    _ <- setValue portInput "8081" Nothing
+
+    end form
+    end body
+
+    buttonsPanel <- groupNew buttonsPanelRect Nothing
+    setBox buttonsPanel EngravedBox
+    let (bpx, bpy, bpw, _) = fromRectangle buttonsPanelRect
+
+    butStart <- buttonNew (toRectangle (bpx + bpw - bs*2 - btw*2, bpy + bs, btw, bth)) (Just "Start")
+    butStop <- buttonNew (toRectangle (bpx + bpw - bs - btw, bpy + bs, btw, bth)) (Just "Stop")
+    deactivate butStop
+    let cb = startCallback statusAppend addrInput portInput butStop
+    setCallback butStart cb
+
+    end buttonsPanel
+
     end gr
     hide gr
     return gr

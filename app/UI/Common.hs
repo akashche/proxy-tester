@@ -28,6 +28,7 @@ module UI.Common
     , commonCreateHeader
     , commonCreateTextDisplayGroup
     , commonTextDisplayMessage
+    , commonSetLabelAlign
     ) where
 
 import Prelude ()
@@ -43,6 +44,12 @@ data CommonConstants = CommonConstants
     , windowMinHeight :: Int
     , treeWidth :: Int
     , statusHeight :: Int
+    , formRowHeight :: Int
+    , formLabelWidth :: Int
+    , formInputWidth :: Int
+    , buttonsPanelHeight :: Int
+    , buttonWidth :: Int
+    , buttonHeight :: Int
     } deriving (Show)
 
 commonConstants :: CommonConstants
@@ -55,6 +62,12 @@ commonConstants = CommonConstants
     , windowMinHeight = 200
     , treeWidth = 200
     , statusHeight = 100
+    , formRowHeight = 20
+    , formLabelWidth = 120
+    , formInputWidth = 120
+    , buttonsPanelHeight = 50
+    , buttonWidth = 100
+    , buttonHeight = 30
     }
 
 data CommonRectangles = CommonRectangles
@@ -63,6 +76,8 @@ data CommonRectangles = CommonRectangles
     , treeRect :: Rectangle
     , contentRect :: Rectangle
     , contentBodyRect :: Rectangle
+    , formRect :: Rectangle
+    , buttonsPanelRect :: Rectangle
     , statusRect :: Rectangle
     } deriving (Show)
 
@@ -75,6 +90,7 @@ commonRectangles =
                 , statusHeight = sh
                 , treeWidth = tw
                 , headerHeight = hh
+                , buttonsPanelHeight = bph
                 } = commonConstants
     in
         CommonRectangles
@@ -83,6 +99,8 @@ commonRectangles =
                 , treeRect = toRectangle (0, 0, tw, wh - sh)
                 , contentRect = toRectangle (tw, 0, ww - tw, wh - sh)
                 , contentBodyRect = toRectangle (tw, hh, ww - tw, wh - sh - hh)
+                , formRect = toRectangle (tw, hh, ww - tw, wh - sh - hh - bph)
+                , buttonsPanelRect = toRectangle (tw, wh - sh - bph, ww - tw, bph)
                 , statusRect = toRectangle (0, wh - sh, ww, sh)
                 }
 
@@ -137,3 +155,13 @@ commonTextDisplayMessage disp msg = do
             appendToBuffer buf msg
             appendToBuffer buf "\n"
         Nothing -> return ()
+
+commonSetLabelAlign :: Ref Box -> IO ()
+commonSetLabelAlign box = do
+    _ <- setAlign box (Alignments
+            [ AlignTypeRight
+            , AlignTypeCenter
+            , AlignTypeInside
+            , AlignTypeWrap
+            ])
+    return ()

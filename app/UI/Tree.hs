@@ -62,6 +62,7 @@ treeCallback statusAppend groups tree = do
 treeCreate :: ActionsBackground -> Ref TextDisplay -> IO TreeResult
 treeCreate _ab statusDisp = do
     let CommonRectangles {treeRect} = commonRectangles
+    let statusAppend = statusMessage statusDisp
 
     tree <- treeNew treeRect Nothing
     setShowroot tree False
@@ -69,7 +70,7 @@ treeCreate _ab statusDisp = do
 
     let proxyRootLabel = "Proxy"
     _ <- add tree proxyRootLabel
-    proxyRootGroup <- proxyCreateRoot proxyRootLabel
+    proxyRootGroup <- proxyCreateRoot proxyRootLabel statusAppend
 
     let proxyInputLabel = "Proxy/Input"
     _ <- add tree proxyInputLabel
@@ -89,7 +90,7 @@ treeCreate _ab statusDisp = do
 
     let destRootLabel = "Destination"
     _ <- add tree destRootLabel
-    destRootGroup <- destinationCreateRoot destRootLabel
+    destRootGroup <- destinationCreateRoot destRootLabel statusAppend
 
     let destInputLabel = "Destination/Input"
     _ <- add tree destInputLabel
@@ -115,7 +116,6 @@ treeCreate _ab statusDisp = do
             , aboutGroup
             ]
 
-    let statusAppend = statusMessage statusDisp
     setCallback tree (treeCallback statusAppend groups)
 
     showGroup groups "About"

@@ -21,16 +21,18 @@
 {-# LANGUAGE StrictData #-}
 
 module FLTKHSPrelude
-    ( Alignments(..), AlignType(..), Box, Boxtype(..), DoubleWindow, FontSize(..)
-    , Group, Rectangle, Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
-    , add, appendToBuffer
-    , boxNew
-    , doubleWindowNew
+    ( Alignments(..), AlignType(..), Boxtype(..)
+    , Box, Button, DoubleWindow, FontSize(..), Group, Input, IntInput, Rectangle
+    , Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+    , activate, add, appendToBuffer
+    , buttonNew, boxNew, boxNewWithBoxtype
+    , deactivate, doubleWindowNew
     , fltkhsAwake, fltkhsLock, fltkhsRun, fltkhsUnlock, fromRectangle
-    , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, groupNew
-    , hide, end
+    , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getValue
+    , groupNew, hide, end
+    , inputNew, intInputNew
     , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
-    , setShowroot, setTextsize
+    , setShowroot, setTextsize, setValue
     , showWidget, sizeRange
     , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
     ) where
@@ -39,16 +41,17 @@ import Prelude (IO, Int, Bool)
 import qualified Graphics.UI.FLTK.LowLevel.FL as FL
 import Graphics.UI.FLTK.LowLevel.Fl_Enumerations (Alignments(..), AlignType(..), Boxtype(..))
 import Graphics.UI.FLTK.LowLevel.FLTKHS
-        ( Box, DoubleWindow, FontSize(..), Group, Rectangle, Ref, Size
-        , TextBuffer, TextDisplay, Tree, TreeReasonType(..)
-        , add, appendToBuffer
-        , boxNew
-        , doubleWindowNew
+        ( Box, Button, DoubleWindow, FontSize(..), Group, Input, IntInput, Rectangle
+        , Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+        , activate, add, appendToBuffer
+        , buttonNew, boxNew, boxNewWithBoxtype
+        , deactivate, doubleWindowNew
         , fromRectangle
-        , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, groupNew
-        , hide, end
+        , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getValue
+        , groupNew, hide, end
+        , inputNew, intInputNew
         , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
-        , setShowroot, setTextsize
+        , setShowroot, setTextsize, setValue
         , showWidget, sizeRange
         , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
         )
