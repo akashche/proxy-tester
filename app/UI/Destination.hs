@@ -87,6 +87,17 @@ destinationCreateRoot label statusAppend = do
     portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
     _ <- setValue portInput "8081" Nothing
 
+    -- response
+    respLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "Response Text")
+    commonSetLabelAlign respLabel
+    respDisp <- textDisplayNew (toRectangle (bx + flw + bs, by + bs*7, fiw*2, frh*8))Nothing
+    setTextsize respDisp (FontSize 12)
+    respBuf <- textBufferNew Nothing Nothing
+    setBuffer respDisp (Just respBuf)
+    commonTextDisplayMessage respDisp "Hello from destination server"
+    end respDisp
+    setResizable form (Just respDisp)
+
     end form
     end body
 

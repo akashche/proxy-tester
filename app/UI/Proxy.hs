@@ -87,7 +87,26 @@ proxyCreateRoot label statusAppend = do
     portLabel <- boxNew (toRectangle (bx, by + bs*4, flw, frh)) (Just "TCP Port")
     commonSetLabelAlign portLabel
     portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
-    _ <- setValue portInput "8081" Nothing
+    _ <- setValue portInput "8082" Nothing
+
+    -- dest address
+    destAddrLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "Dest IP Address")
+    commonSetLabelAlign destAddrLabel
+    destAddrInput <- inputNew (toRectangle (bx + flw + bs, by + bs*7, fiw, frh)) Nothing Nothing
+    _ <- setValue destAddrInput "127.0.0.1" Nothing
+
+    -- dest port
+    destPortLabel <- boxNew (toRectangle (bx, by + bs*10, flw, frh)) (Just "Dest TCP Port")
+    commonSetLabelAlign destPortLabel
+    destPortInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*10, fiw, frh)) Nothing
+    _ <- setValue destPortInput "8081" Nothing
+
+    -- invisible
+    invLabel <- boxNew (toRectangle (bx, by + bs*13, flw, frh)) (Just "")
+    commonSetLabelAlign invLabel
+    invBox <- boxNew (toRectangle (bx + flw + bs, by + bs*13, fiw, frh)) Nothing
+    setResizable form (Just invBox)
+    hide invBox
 
     end form
     end body
