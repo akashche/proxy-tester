@@ -21,7 +21,9 @@
 {-# LANGUAGE StrictData #-}
 
 module UI.Destination
-    ( destinationCreateRoot
+    ( DestinationAppenders(..)
+    , DestinationDisplayResult
+    , destinationCreateRoot
     , destinationCreateInput
     , destinationCreateOutput
     ) where
@@ -30,32 +32,49 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import Actions
+import DestinationServer
 import UI.Common
 
-type DestResult = (Ref Group, Text -> IO ())
+data DestForm = DestForm
+    { addr :: Ref Input
+    , port :: Ref IntInput
+    , resp :: Ref TextDisplay
+    , stop :: Ref Button
+    }
 
-startCallback ::(Text -> IO ()) -> ActionsBackground -> Ref Input -> Ref IntInput -> Ref Button -> Ref Button -> IO ()
-startCallback statusAppend actions addr port stop start = do
-    let ActionsBackground
-            { destServerStart
-            , destServerStop
-            } = actions
+data DestinationAppenders = DestinationAppenders
+    { input :: Text -> IO ()
+    , output :: Text -> IO ()
+    }
+
+type DestinationDisplayResult = (Ref Group, Text -> IO ())
+
+startCallback ::(Text -> IO ()) -> DestForm -> DestinationAppenders -> Ref Button -> IO ()
+startCallback statusAppend form da start = do
+    let DestForm {addr, port, resp, stop} = form
+    let DestinationAppenders {input = input, output = output} = da
     av <- getValue addr
-    pv <- getValue port
-    statusAppend ("start called, address: " <> av <> ", port: " <> (textShow pv))
+    pv <- (read . unpack) <$> getValue port :: IO Int
+    rv <- commonGetTextDisplayValue resp
     deactivate start
-    server <- destServerStart
+    let dsa = DestinationServerOptions
+            { input = input
+            , output = output
+            , status = statusAppend
+            , host = av
+            , port = pv
+            , response = rv
+            }
+    server <- destinationServerStart dsa
     setCallback stop $ \_ -> do
-        statusAppend "stop called"
         deactivate stop
-        destServerStop server
+        destinationServerStop server
         activate start
         return ()
     activate stop
 
-destinationCreateRoot :: Text -> (Text -> IO ()) -> ActionsBackground -> IO (Ref Group)
-destinationCreateRoot label statusAppend actions = do
+destinationCreateRoot :: Text -> (Text -> IO ()) -> DestinationAppenders -> IO (Ref Group)
+destinationCreateRoot label statusAppend da = do
     let CommonConstants
             { borderSize = bs
             , formRowHeight = frh
@@ -101,7 +120,7 @@ destinationCreateRoot label statusAppend actions = do
     setTextsize respDisp (FontSize 12)
     respBuf <- textBufferNew Nothing Nothing
     setBuffer respDisp (Just respBuf)
-    commonTextDisplayMessage respDisp "Hello from destination server"
+    commonTextDisplayAppend respDisp "Hello from destination server"
     end respDisp
     setResizable form (Just respDisp)
 
@@ -112,11 +131,16 @@ destinationCreateRoot label statusAppend actions = do
     setBox buttonsPanel EngravedBox
     let (bpx, bpy, bpw, _) = fromRectangle buttonsPanelRect
 
-    butStart <- buttonNew (toRectangle (bpx + bpw - bs*2 - btw*2, bpy + bs, btw, bth)) (Just "Start")
-    butStop <- buttonNew (toRectangle (bpx + bpw - bs - btw, bpy + bs, btw, bth)) (Just "Stop")
-    deactivate butStop
-    let cb = startCallback statusAppend actions addrInput portInput butStop
-    setCallback butStart cb
+    startButt <- buttonNew (toRectangle (bpx + bpw - bs*2 - btw*2, bpy + bs, btw, bth)) (Just "Start")
+    stopButt <- buttonNew (toRectangle (bpx + bpw - bs - btw, bpy + bs, btw, bth)) (Just "Stop")
+    deactivate stopButt
+    let df = DestForm
+            { addr = addrInput
+            , port = portInput
+            , resp = respDisp
+            , stop = stopButt
+            }
+    setCallback startButt (startCallback statusAppend df da)
 
     end buttonsPanel
 
@@ -124,8 +148,8 @@ destinationCreateRoot label statusAppend actions = do
     hide gr
     return gr
 
-destinationCreateInput :: Text -> IO DestResult
+destinationCreateInput :: Text -> IO DestinationDisplayResult
 destinationCreateInput label = commonCreateTextDisplayGroup label "Destination Server Input"
 
-destinationCreateOutput :: Text -> IO DestResult
+destinationCreateOutput :: Text -> IO DestinationDisplayResult
 destinationCreateOutput label = commonCreateTextDisplayGroup label "Destination Server Output"

@@ -26,7 +26,7 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import Actions
+import UI.Actions
 import UI.MainWindow
 
 main :: IO ()
@@ -34,7 +34,7 @@ main = do
     mw <- mainWindowCreate
     let (window, actions) = mw
     showWidget window
-    let ActionsUI {showContentGroup} = actions
+    let Actions {showContentGroup} = actions
 
     _ <- fltkhsLock
 

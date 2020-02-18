@@ -28,12 +28,12 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import Actions
+import UI.Actions
 import UI.Common
 import UI.Status
 import UI.Tree
 
-type MainWindow = (Ref DoubleWindow, ActionsUI)
+type MainWindow = (Ref DoubleWindow, Actions)
 
 mainWindowCreate :: IO MainWindow
 mainWindowCreate = do

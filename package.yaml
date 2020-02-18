@@ -68,12 +68,14 @@ executables:
         - "-optl-Wl,-lfltkc"
     dependencies:
     - async
+    - bytestring
     - fltkhs
     - http-types
     - text
     - unordered-containers
     - vector
     - vt-utils
+    - wai
     - warp
     - proxy-tester
 

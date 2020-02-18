@@ -28,15 +28,14 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import Actions
-import DestinationServer
+import UI.Actions
 import UI.About
 import UI.Common
 import UI.Destination
 import UI.Proxy
 import UI.Status
 
-type TreeResult = (Ref Tree, ActionsUI)
+type TreeResult = (Ref Tree, Actions)
 
 showGroup :: Vector (Ref Group) -> Text -> IO ()
 showGroup groups name = do
@@ -65,12 +64,6 @@ treeCreate statusDisp = do
     let CommonRectangles {treeRect} = commonRectangles
     let statusAppend = statusMessage statusDisp
 
-    -- todo: moveme from here
-    let ab = ActionsBackground
-            { destServerStart = destinationServerStart statusAppend
-            , destServerStop = destinationServerStop statusAppend
-            }
-
     tree <- treeNew treeRect Nothing
     setShowroot tree False
     end tree
@@ -95,17 +88,20 @@ treeCreate statusDisp = do
     _ <- add tree proxyOutputLabel
     (proxyOutputGroup, proxyOutputAppend) <- proxyCreateOutput proxyOutputLabel
 
+    -- destination
     let destRootLabel = "Destination"
-    _ <- add tree destRootLabel
-    destRootGroup <- destinationCreateRoot destRootLabel statusAppend ab
-
     let destInputLabel = "Destination/Input"
+    let destOutputLabel = "Destination/Output"
+    _ <- add tree destRootLabel
     _ <- add tree destInputLabel
     (destInputGroup, destInputAppend) <- destinationCreateInput destInputLabel
-
-    let destOutputLabel = "Destination/Output"
     _ <- add tree destOutputLabel
     (destOutputGroup, destOutputAppend) <- destinationCreateOutput destOutputLabel
+    let da = DestinationAppenders
+            { input = destInputAppend
+            , output = destOutputAppend
+            }
+    destRootGroup <- destinationCreateRoot destRootLabel statusAppend da
 
     let aboutLabel = "About"
     _ <- add tree aboutLabel
@@ -127,7 +123,7 @@ treeCreate statusDisp = do
 
     showGroup groups "About"
 
-    let actions = ActionsUI
+    let actions = Actions
             { statusAppend = statusAppend
             , showContentGroup = showGroup groups
             , proxyInputAppend = proxyInputAppend

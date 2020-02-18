@@ -46,4 +46,4 @@ statusCreate = do
 statusMessage :: Ref TextDisplay -> Text -> IO ()
 statusMessage disp msg = do
     date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
-    commonTextDisplayMessage disp (date <> " " <> msg)
+    commonTextDisplayAppend disp (date <> " " <> msg)

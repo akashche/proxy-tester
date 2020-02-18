@@ -27,8 +27,10 @@ module UI.Common
     , commonRectangles
     , commonCreateHeader
     , commonCreateTextDisplayGroup
+    , commonTextDisplayAppend
     , commonTextDisplayMessage
     , commonSetLabelAlign
+    , commonGetTextDisplayValue
     ) where
 
 import Prelude ()
@@ -147,14 +149,23 @@ commonCreateTextDisplayGroup label header = do
     hide gr
     return (gr, append)
 
-commonTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
-commonTextDisplayMessage disp msg = do
+commonTextDisplayAppend :: Ref TextDisplay -> Text -> IO ()
+commonTextDisplayAppend disp msg = do
     mbuf <- getBuffer disp
     case mbuf of
         Just buf -> do
             appendToBuffer buf msg
             appendToBuffer buf "\n"
         Nothing -> return ()
+
+commonTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
+commonTextDisplayMessage disp msg = do
+    _ <- fltkhsLock
+    date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
+    commonTextDisplayAppend disp (date <> " " <> msg)
+    _ <- fltkhsUnlock
+    _ <- fltkhsAwake
+    return ()
 
 commonSetLabelAlign :: Ref Box -> IO ()
 commonSetLabelAlign box = do
@@ -165,3 +176,10 @@ commonSetLabelAlign box = do
             , AlignTypeWrap
             ])
     return ()
+
+commonGetTextDisplayValue :: Ref TextDisplay -> IO Text
+commonGetTextDisplayValue disp = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> getText buf
+        Nothing -> return ""

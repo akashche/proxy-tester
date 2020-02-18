@@ -20,16 +20,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Actions
-    ( ActionsUI(..)
-    , ActionsBackground(..)
+module UI.Actions
+    ( Actions(..)
     ) where
 
 import Prelude ()
 import VtUtils.Prelude
-import qualified Control.Concurrent.MVar as MVar
 
-data ActionsUI = ActionsUI
+data Actions = Actions
     { statusAppend :: Text -> IO ()
     , showContentGroup :: Text -> IO ()
     , proxyInputAppend :: Text -> IO ()
@@ -39,11 +37,6 @@ data ActionsUI = ActionsUI
     , destInputAppend :: Text -> IO ()
     , destOutputAppend :: Text -> IO ()
     , proxyInputAppend :: Text -> IO ()
-    }
-
-data ActionsBackground = ActionsBackground
-    { destServerStart :: IO (MVar.MVar ())
-    , destServerStop :: MVar.MVar () -> IO ()
     }
 
 

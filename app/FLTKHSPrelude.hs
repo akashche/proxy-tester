@@ -28,7 +28,7 @@ module FLTKHSPrelude
     , buttonNew, boxNew, boxNewWithBoxtype
     , deactivate, doubleWindowNew
     , fltkhsAwake, fltkhsLock, fltkhsRun, fltkhsUnlock, fromRectangle
-    , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getValue
+    , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getText, getValue
     , groupNew, hide, end
     , inputNew, intInputNew
     , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
@@ -47,7 +47,7 @@ import Graphics.UI.FLTK.LowLevel.FLTKHS
         , buttonNew, boxNew, boxNewWithBoxtype
         , deactivate, doubleWindowNew
         , fromRectangle
-        , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getValue
+        , getBuffer, getCallbackItem, getLabel, getCallbackReason, getParent, getText, getValue
         , groupNew, hide, end
         , inputNew, intInputNew
         , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
