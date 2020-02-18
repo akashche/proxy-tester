@@ -26,7 +26,14 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - async
+  - bytestring
+  - text
+  - vector
+  - http-types
   - vt-utils
+  - wai
+  - warp
 
 executables:
   proxy-tester-exe:
@@ -67,16 +74,10 @@ executables:
         ghc-options:
         - "-optl-Wl,-lfltkc"
     dependencies:
-    - async
-    - bytestring
     - fltkhs
-    - http-types
     - text
-    - unordered-containers
     - vector
     - vt-utils
-    - wai
-    - warp
     - proxy-tester
 
 tests:

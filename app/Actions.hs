@@ -20,7 +20,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Actions
+module Actions
     ( Actions(..)
     ) where
 

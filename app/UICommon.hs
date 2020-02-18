@@ -20,7 +20,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Common
+module UICommon
     ( CommonConstants(..)
     , CommonRectangles(..)
     , commonConstants

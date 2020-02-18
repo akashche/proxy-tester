@@ -20,36 +20,30 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.About
-    ( aboutCreate
+module Status
+    ( statusCreate
+    , statusMessage
     ) where
 
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import UI.Common
+import UICommon
 
-aboutCreate :: Text -> IO (Ref Group)
-aboutCreate label = do
-    let CommonRectangles
-            { contentRect
-            , contentBodyRect
-            } = commonRectangles
+statusCreate :: IO (Ref TextDisplay)
+statusCreate = do
+    let CommonRectangles {statusRect} = commonRectangles
 
-    gr <- groupNew contentRect (Just label)
-    setBox gr DownBox
-    setResizable gr (Nothing :: Maybe (Ref Box))
-    _ <- commonCreateHeader "About"
-    body <- boxNew contentBodyRect (Just
-            "Application for testing HTTP proxy support")
-    setAlign body (Alignments
-            [ AlignTypeCenter
-            , AlignTypeTop
-            , AlignTypeInside
-            , AlignTypeWrap
-            ])
-    setResizable gr (Just body)
-    end gr
-    hide gr
-    return gr
+    disp <- textDisplayNew statusRect Nothing
+    setTextsize disp (FontSize 12)
+    buf <- textBufferNew Nothing Nothing
+    setBuffer disp (Just buf)
+    statusMessage disp "initialized"
+    end disp
+    return disp
+
+statusMessage :: Ref TextDisplay -> Text -> IO ()
+statusMessage disp msg = do
+    date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
+    commonTextDisplayAppend disp (date <> " " <> msg)

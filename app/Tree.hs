@@ -20,7 +20,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Tree
+module Tree
     ( treeCreate
     ) where
 
@@ -28,12 +28,12 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import UI.Actions
-import UI.About
-import UI.Common
-import UI.Destination
-import UI.Proxy
-import UI.Status
+import Actions
+import About
+import UICommon
+import Destination
+import Proxy
+import Status
 
 type TreeResult = (Ref Tree, Actions)
 
@@ -47,7 +47,7 @@ showGroup groups name = do
             hide gr
 
 treeCallback :: (Text -> IO ()) -> Vector (Ref Group) -> Ref Tree -> IO ()
-treeCallback statusAppend groups tree = do
+treeCallback _status groups tree = do
     (Just item) <- getCallbackItem tree
     label <- getLabel item
     (Just parent) <- getParent item
@@ -55,7 +55,7 @@ treeCallback statusAppend groups tree = do
     let path = if "ROOT" == parentLabel then label else parentLabel <> "/" <> label
     reason <- getCallbackReason tree
     when (TreeReasonSelected == reason) $ do
-        statusAppend path
+--         status path
         showGroup groups path
     return ()
 

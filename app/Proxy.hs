@@ -20,7 +20,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Proxy
+module Proxy
     ( proxyCreateRoot
     , proxyCreateInput
     , proxyCreateForwarded
@@ -32,7 +32,7 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import UI.Common
+import UICommon
 
 type ProxyResult = (Ref Group, Text -> IO ())
 

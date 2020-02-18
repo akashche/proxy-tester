@@ -20,7 +20,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module UI.Destination
+module Destination
     ( DestinationAppenders(..)
     , DestinationDisplayResult
     , destinationCreateRoot
@@ -32,8 +32,8 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
+import UICommon
 import DestinationServer
-import UI.Common
 
 data DestForm = DestForm
     { addr :: Ref Input

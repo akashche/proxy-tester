@@ -26,8 +26,39 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
-import UI.Actions
-import UI.MainWindow
+import Actions
+import UICommon
+import Status
+import Tree
+
+type MainWindow = (Ref DoubleWindow, Actions)
+
+mainWindowCreate :: IO MainWindow
+mainWindowCreate = do
+    let CommonConstants
+            { windowWidth
+            , windowMinWidth
+            , windowHeight
+            , windowMinHeight
+            } = commonConstants
+    let CommonRectangles
+            { windowRect
+            , tileRect
+            } = commonRectangles
+    let ws = toSize (windowWidth, windowHeight)
+
+    window <- doubleWindowNew ws Nothing (Just "Proxy Tester")
+    sizeRange window windowMinWidth windowMinHeight
+    setResizable window (Nothing :: Maybe (Ref Group))
+    mainTile <- tileNew windowRect Nothing
+    statusDisp <- statusCreate
+    tile <- tileNew tileRect Nothing
+    (tree, actions) <- treeCreate statusDisp
+    setResizable window (Just tree)
+    end tile
+    end mainTile
+    end window
+    return (window, actions)
 
 main :: IO ()
 main = do
@@ -39,15 +70,6 @@ main = do
     _ <- fltkhsLock
 
     showContentGroup "About"
-
---     _ <- Concurrent.forkOS $ do
---         forM_ (Vector.replicate 5 (0 :: Int)) $ \_ -> do
---             Concurrent.threadDelay 3000000
---             _ <- fltkhsLock
---             proxyInputAppend "Hello"
---             _ <- fltkhsUnlock
---             _ <- fltkhsAwake
---             return ()
 
     _ <- fltkhsRun
     return ()
