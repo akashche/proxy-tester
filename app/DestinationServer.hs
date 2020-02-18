@@ -20,30 +20,30 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
-module Actions
-    ( ActionsUI(..)
-    , ActionsBackground(..)
+module DestinationServer
+    ( destinationServerStart
+    , destinationServerStop
     ) where
 
 import Prelude ()
 import VtUtils.Prelude
+import qualified Control.Concurrent as Concurrent
+import qualified Control.Concurrent.Async as Async
 import qualified Control.Concurrent.MVar as MVar
+import qualified Network.HTTP.Types as HTTPTypes
+import qualified Network.Wai.Handler.Warp as Warp
 
-data ActionsUI = ActionsUI
-    { statusAppend :: Text -> IO ()
-    , showContentGroup :: Text -> IO ()
-    , proxyInputAppend :: Text -> IO ()
-    , proxyForwardedAppend :: Text -> IO ()
-    , proxyReceivedAppend :: Text -> IO ()
-    , proxyOutputAppend :: Text -> IO ()
-    , destInputAppend :: Text -> IO ()
-    , destOutputAppend :: Text -> IO ()
-    , proxyInputAppend :: Text -> IO ()
-    }
+destinationServerStart :: (Text -> IO ()) -> IO (MVar.MVar ())
+destinationServerStart statusAppend = do
+    handle <- MVar.newEmptyMVar
+    let settings = Warp.setPort 8080 Warp.defaultSettings
+    _ <- Concurrent.forkIO $ Async.race_ (MVar.takeMVar handle) $ Warp.runSettings settings $ \_ respond -> do
+        respond $ responseLBS HTTPTypes.status200 [] $
+            "hello from server"
+    statusAppend "Server started"
+    return handle
 
-data ActionsBackground = ActionsBackground
-    { destServerStart :: IO (MVar.MVar ())
-    , destServerStop :: MVar.MVar () -> IO ()
-    }
-
-
+destinationServerStop :: (Text -> IO ()) -> (MVar.MVar ()) -> IO ()
+destinationServerStop statusAppend handle = do
+    MVar.putMVar handle ()
+    statusAppend "Server stopped"

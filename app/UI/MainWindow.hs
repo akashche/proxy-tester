@@ -35,8 +35,8 @@ import UI.Tree
 
 type MainWindow = (Ref DoubleWindow, ActionsUI)
 
-mainWindowCreate :: ActionsBackground -> IO MainWindow
-mainWindowCreate ab = do
+mainWindowCreate :: IO MainWindow
+mainWindowCreate = do
     let CommonConstants
             { windowWidth
             , windowMinWidth
@@ -55,7 +55,7 @@ mainWindowCreate ab = do
     mainTile <- tileNew windowRect Nothing
     statusDisp <- statusCreate
     tile <- tileNew tileRect Nothing
-    (tree, actions) <- treeCreate ab statusDisp
+    (tree, actions) <- treeCreate statusDisp
     setResizable window (Just tree)
     end tile
     end mainTile

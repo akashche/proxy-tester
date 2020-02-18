@@ -25,32 +25,29 @@ module Main where
 import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
-import qualified Control.Concurrent as Concurrent
-import qualified Data.Vector as Vector
 
 import Actions
 import UI.MainWindow
 
 main :: IO ()
 main = do
-    let ab = ActionsBackground
-    mw <- mainWindowCreate ab
+    mw <- mainWindowCreate
     let (window, actions) = mw
     showWidget window
-    let ActionsUI {showContentGroup, proxyInputAppend} = actions
+    let ActionsUI {showContentGroup} = actions
 
     _ <- fltkhsLock
 
     showContentGroup "About"
 
-    _ <- Concurrent.forkOS $ do
-        forM_ (Vector.replicate 5 (0 :: Int)) $ \_ -> do
-            Concurrent.threadDelay 3000000
-            _ <- fltkhsLock
-            proxyInputAppend "Hello"
-            _ <- fltkhsUnlock
-            _ <- fltkhsAwake
-            return ()
+--     _ <- Concurrent.forkOS $ do
+--         forM_ (Vector.replicate 5 (0 :: Int)) $ \_ -> do
+--             Concurrent.threadDelay 3000000
+--             _ <- fltkhsLock
+--             proxyInputAppend "Hello"
+--             _ <- fltkhsUnlock
+--             _ <- fltkhsAwake
+--             return ()
 
     _ <- fltkhsRun
     return ()

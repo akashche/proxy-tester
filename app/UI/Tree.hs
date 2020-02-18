@@ -29,6 +29,7 @@ import VtUtils.Prelude
 import FLTKHSPrelude
 
 import Actions
+import DestinationServer
 import UI.About
 import UI.Common
 import UI.Destination
@@ -59,10 +60,16 @@ treeCallback statusAppend groups tree = do
         showGroup groups path
     return ()
 
-treeCreate :: ActionsBackground -> Ref TextDisplay -> IO TreeResult
-treeCreate _ab statusDisp = do
+treeCreate :: Ref TextDisplay -> IO TreeResult
+treeCreate statusDisp = do
     let CommonRectangles {treeRect} = commonRectangles
     let statusAppend = statusMessage statusDisp
+
+    -- todo: moveme from here
+    let ab = ActionsBackground
+            { destServerStart = destinationServerStart statusAppend
+            , destServerStop = destinationServerStop statusAppend
+            }
 
     tree <- treeNew treeRect Nothing
     setShowroot tree False
@@ -90,7 +97,7 @@ treeCreate _ab statusDisp = do
 
     let destRootLabel = "Destination"
     _ <- add tree destRootLabel
-    destRootGroup <- destinationCreateRoot destRootLabel statusAppend
+    destRootGroup <- destinationCreateRoot destRootLabel statusAppend ab
 
     let destInputLabel = "Destination/Input"
     _ <- add tree destInputLabel

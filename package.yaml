@@ -67,11 +67,14 @@ executables:
         ghc-options:
         - "-optl-Wl,-lfltkc"
     dependencies:
+    - async
     - fltkhs
+    - http-types
     - text
     - unordered-containers
     - vector
     - vt-utils
+    - warp
     - proxy-tester
 
 tests:

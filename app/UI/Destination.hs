@@ -30,25 +30,32 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
+import Actions
 import UI.Common
 
 type DestResult = (Ref Group, Text -> IO ())
 
-startCallback ::(Text -> IO ()) -> Ref Input -> Ref IntInput -> Ref Button -> Ref Button -> IO ()
-startCallback statusAppend addr port stop start = do
+startCallback ::(Text -> IO ()) -> ActionsBackground -> Ref Input -> Ref IntInput -> Ref Button -> Ref Button -> IO ()
+startCallback statusAppend actions addr port stop start = do
+    let ActionsBackground
+            { destServerStart
+            , destServerStop
+            } = actions
     av <- getValue addr
     pv <- getValue port
     statusAppend ("start called, address: " <> av <> ", port: " <> (textShow pv))
     deactivate start
+    server <- destServerStart
     setCallback stop $ \_ -> do
         statusAppend "stop called"
         deactivate stop
+        destServerStop server
         activate start
         return ()
     activate stop
 
-destinationCreateRoot :: Text -> (Text -> IO ()) -> IO (Ref Group)
-destinationCreateRoot label statusAppend = do
+destinationCreateRoot :: Text -> (Text -> IO ()) -> ActionsBackground -> IO (Ref Group)
+destinationCreateRoot label statusAppend actions = do
     let CommonConstants
             { borderSize = bs
             , formRowHeight = frh
@@ -108,7 +115,7 @@ destinationCreateRoot label statusAppend = do
     butStart <- buttonNew (toRectangle (bpx + bpw - bs*2 - btw*2, bpy + bs, btw, bth)) (Just "Start")
     butStop <- buttonNew (toRectangle (bpx + bpw - bs - btw, bpy + bs, btw, bth)) (Just "Stop")
     deactivate butStop
-    let cb = startCallback statusAppend addrInput portInput butStop
+    let cb = startCallback statusAppend actions addrInput portInput butStop
     setCallback butStart cb
 
     end buttonsPanel
