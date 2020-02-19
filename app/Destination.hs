@@ -52,7 +52,7 @@ type DestinationDisplayResult = (Ref Group, Text -> IO ())
 startCallback ::(Text -> IO ()) -> DestForm -> DestinationAppenders -> Ref Button -> IO ()
 startCallback statusAppend form da start = do
     let DestForm {addr, port, resp, stop} = form
-    let DestinationAppenders {input = input, output = output} = da
+    let DestinationAppenders {input, output} = da
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
     rv <- uiGetTextDisplayValue resp

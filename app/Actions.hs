@@ -32,7 +32,6 @@ data Actions = Actions
     , showContentGroup :: Text -> IO ()
     , proxyInputAppend :: Text -> IO ()
     , proxyForwardedAppend :: Text -> IO ()
-    , proxyReceivedAppend :: Text -> IO ()
     , proxyOutputAppend :: Text -> IO ()
     , destInputAppend :: Text -> IO ()
     , destOutputAppend :: Text -> IO ()

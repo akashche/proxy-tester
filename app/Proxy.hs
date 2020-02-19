@@ -21,10 +21,10 @@
 {-# LANGUAGE StrictData #-}
 
 module Proxy
-    ( proxyCreateRoot
+    ( ProxyAppenders(..)
+    , proxyCreateRoot
     , proxyCreateInput
     , proxyCreateForwarded
-    , proxyCreateReceived
     , proxyCreateOutput
     ) where
 
@@ -32,25 +32,54 @@ import Prelude ()
 import VtUtils.Prelude
 import FLTKHSPrelude
 
+import ProxyServer
 import UICommon
 
 type ProxyResult = (Ref Group, Text -> IO ())
 
-startCallback ::(Text -> IO ()) -> Ref Input -> Ref IntInput -> Ref Button -> Ref Button -> IO ()
-startCallback statusAppend addr port stop start = do
+data ProxyForm = ProxyForm
+    { addr :: Ref Input
+    , port :: Ref IntInput
+    , destAddr :: Ref Input
+    , destPort :: Ref IntInput
+    , stop :: Ref Button
+    }
+
+data ProxyAppenders = ProxyAppenders
+    { input :: Text -> IO ()
+    , forwarded :: Text -> IO ()
+    , output :: Text -> IO ()
+    }
+
+startCallback ::(Text -> IO ()) -> ProxyForm -> ProxyAppenders -> Ref Button -> IO ()
+startCallback statusAppend form da start = do
+    let ProxyForm {addr, port, destAddr, destPort, stop} = form
+    let ProxyAppenders {input, forwarded, output} = da
     av <- getValue addr
-    pv <- getValue port
-    statusAppend ("start called, address: " <> av <> ", port: " <> (textShow pv))
+    pv <- (read . unpack) <$> getValue port :: IO Int
+    dav <- getValue destAddr
+    dpv <- (read . unpack) <$> getValue destPort :: IO Int
     deactivate start
+    let pso = ProxyServerOptions
+            { input = input
+            , forwarded = forwarded
+            , output = output
+            , status = statusAppend
+            , host = av
+            , port = pv
+            , destHost = dav
+            , destPort = dpv
+            }
+    server <- proxyServerStart pso
     setCallback stop $ \_ -> do
-        statusAppend "stop called"
         deactivate stop
+        proxyServerStop server
         activate start
         return ()
     activate stop
 
-proxyCreateRoot :: Text -> (Text -> IO ()) -> IO (Ref Group)
-proxyCreateRoot label statusAppend = do
+proxyCreateRoot :: Text -> (Text -> IO ()) -> ProxyAppenders-> IO (Ref Group)
+proxyCreateRoot label statusAppend pa = do
     let UIConstants
             { borderSize = bs
             , formRowHeight = frh
@@ -118,8 +147,16 @@ proxyCreateRoot label statusAppend = do
     butStart <- buttonNew (toRectangle (bpx + bpw - bs*2 - btw*2, bpy + bs, btw, bth)) (Just "Start")
     butStop <- buttonNew (toRectangle (bpx + bpw - bs - btw, bpy + bs, btw, bth)) (Just "Stop")
     deactivate butStop
-    let cb = startCallback statusAppend addrInput portInput butStop
-    setCallback butStart cb
+
+    let pf = ProxyForm
+            { addr = addrInput
+            , port = portInput
+            , destAddr = destAddrInput
+            , destPort = destPortInput
+            , stop = butStop
+            }
+
+    setCallback butStart (startCallback statusAppend pf pa)
 
     end buttonsPanel
 
@@ -132,9 +169,6 @@ proxyCreateInput label = uiCreateTextDisplayGroup label "Proxy Server Input Data
 
 proxyCreateForwarded :: Text -> IO ProxyResult
 proxyCreateForwarded label = uiCreateTextDisplayGroup label "Proxy Server Forwarded Data"
-
-proxyCreateReceived :: Text -> IO ProxyResult
-proxyCreateReceived label = uiCreateTextDisplayGroup label "Proxy Server Received Data"
 
 proxyCreateOutput :: Text -> IO ProxyResult
 proxyCreateOutput label = uiCreateTextDisplayGroup label "Proxy Server Output Data"

@@ -68,25 +68,25 @@ treeCreate statusDisp = do
     setShowroot tree False
     end tree
 
+    -- proxy
     let proxyRootLabel = "Proxy"
-    _ <- add tree proxyRootLabel
-    proxyRootGroup <- proxyCreateRoot proxyRootLabel statusAppend
-
     let proxyInputLabel = "Proxy/Input"
+    let proxyForwardedLabel = "Proxy/Forwarded"
+    let proxyOutputLabel = "Proxy/Output"
+
+    _ <- add tree proxyRootLabel
     _ <- add tree proxyInputLabel
     (proxyInputGroup, proxyInputAppend) <- proxyCreateInput proxyInputLabel
-
-    let proxyForwardedLabel = "Proxy/Forwarded"
     _ <- add tree proxyForwardedLabel
     (proxyForwardedGroup, proxyForwardedAppend) <- proxyCreateForwarded proxyForwardedLabel
-
-    let proxyReceivedLabel = "Proxy/Received"
-    _ <- add tree proxyReceivedLabel
-    (proxyReceivedGroup, proxyReceivedAppend) <- proxyCreateReceived proxyReceivedLabel
-
-    let proxyOutputLabel = "Proxy/Output"
     _ <- add tree proxyOutputLabel
     (proxyOutputGroup, proxyOutputAppend) <- proxyCreateOutput proxyOutputLabel
+    let pa = ProxyAppenders
+            { input = proxyInputAppend
+            , forwarded = proxyForwardedAppend
+            , output = proxyOutputAppend
+            }
+    proxyRootGroup <- proxyCreateRoot proxyRootLabel statusAppend pa
 
     -- destination
     let destRootLabel = "Destination"
@@ -111,7 +111,6 @@ treeCreate statusDisp = do
             [ proxyRootGroup
             , proxyInputGroup
             , proxyForwardedGroup
-            , proxyReceivedGroup
             , proxyOutputGroup
             , destRootGroup
             , destInputGroup
@@ -128,7 +127,6 @@ treeCreate statusDisp = do
             , showContentGroup = showGroup groups
             , proxyInputAppend = proxyInputAppend
             , proxyForwardedAppend = proxyForwardedAppend
-            , proxyReceivedAppend = proxyReceivedAppend
             , proxyOutputAppend = proxyOutputAppend
             , destInputAppend = destInputAppend
             , destOutputAppend = destOutputAppend
