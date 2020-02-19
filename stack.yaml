@@ -41,9 +41,9 @@ packages:
 extra-deps:
 - fltkhs-0.5.4.5
 #- vt-utils-1.3.0.0
-#- github: akashche/vt-utils
-#  commit: master
-- /home/alex/projects/haskell/vt-utils/
+- github: akashche/vt-utils
+  commit: master
+#- /home/alex/projects/haskell/vt-utils/
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
