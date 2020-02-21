@@ -41,7 +41,7 @@ data ProxyForm = ProxyForm
     { addr :: Ref Input
     , port :: Ref IntInput
     , pacPath :: Ref Input
-    , pacBody :: Ref TextDisplay
+    , pacBody :: Ref TextEditor
     , stop :: Ref Button
     }
 
@@ -74,7 +74,7 @@ startCallback statusAppend form da start = do
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
     ppv <- getValue pacPath
-    pbv <- uiGetTextDisplayValue pacBody
+    pbv <- uiGetTextEditorValue pacBody
     deactivate start
     let pso = ProxyServerOptions
             { input = input
@@ -147,11 +147,11 @@ proxyCreateRoot label statusAppend pa = do
     -- pac body
     pacBodyLabel <- boxNew (toRectangle (bx, by + bs*10, flw, frh)) (Just "PAC Contents")
     uiSetLabelAlign pacBodyLabel
-    pacBodyDisp <- textDisplayNew (toRectangle (bx + flw + bs, by + bs*10, fiw*2, frh*8))Nothing
+    pacBodyDisp <- textEditorNew (toRectangle (bx + flw + bs, by + bs*10, fiw*2, frh*8))Nothing
     setTextsize pacBodyDisp (FontSize 12)
     pacBodyBuf <- textBufferNew Nothing Nothing
     setBuffer pacBodyDisp (Just pacBodyBuf)
-    uiTextDisplayAppend pacBodyDisp $ "\n" <>
+    uiTextEditorAppend pacBodyDisp $ "\n" <>
             "function FindProxyForURL(url, host) {\n" <>
             "    return \"PROXY 127.0.0.1:8082\";\n" <>
             "}"

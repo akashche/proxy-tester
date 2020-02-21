@@ -28,10 +28,12 @@ module UICommon
     , uiCreateHeader
     , uiCreateTextDisplayGroup
     , uiTextDisplayAppend
+    , uiTextEditorAppend
     , uiTextDisplayClear
     , uiTextDisplayMessage
     , uiSetLabelAlign
     , uiGetTextDisplayValue
+    , uiGetTextEditorValue
     ) where
 
 import Prelude ()
@@ -160,6 +162,15 @@ uiTextDisplayAppend disp msg = do
             appendToBuffer buf "\n"
         Nothing -> return ()
 
+uiTextEditorAppend :: Ref TextEditor -> Text -> IO ()
+uiTextEditorAppend disp msg = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> do
+            appendToBuffer buf msg
+            appendToBuffer buf "\n"
+        Nothing -> return ()
+
 uiTextDisplayClear :: Ref TextDisplay -> IO ()
 uiTextDisplayClear disp = do
     mbuf <- getBuffer disp
@@ -189,6 +200,13 @@ uiSetLabelAlign box = do
 
 uiGetTextDisplayValue :: Ref TextDisplay -> IO Text
 uiGetTextDisplayValue disp = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> getText buf
+        Nothing -> return ""
+
+uiGetTextEditorValue :: Ref TextEditor -> IO Text
+uiGetTextEditorValue disp = do
     mbuf <- getBuffer disp
     case mbuf of
         Just buf -> getText buf

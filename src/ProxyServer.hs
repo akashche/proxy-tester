@@ -129,11 +129,11 @@ proxyServerStart da = do
                         forwarded body
                         -- output
                         (dresp, dbody) <- withResponse dreq man $ \resp -> do
-                            dbody <- httpResponseBodyText (textShow req) resp maxBytes
+                            dbody <- httpResponseBody (textShow req) resp maxBytes
                             return (resp, dbody)
                         output $ serverFormatResponse dresp
-                        output dbody
-                        respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+--                         output dbody
+                        respond $ responseLBS HTTPTypes.status200 [] $
                             dbody )
                     (\(_::SomeException) -> do
                         status $ "Forwarding error, ignoring it"

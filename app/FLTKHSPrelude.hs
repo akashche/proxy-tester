@@ -23,7 +23,7 @@
 module FLTKHSPrelude
     ( Alignments(..), AlignType(..), Boxtype(..)
     , Box, Button, DoubleWindow, FontSize(..), Group, Input, IntInput, Rectangle
-    , Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+    , Ref, Size, TextBuffer, TextDisplay, TextEditor, Tree, TreeReasonType(..)
     , activate, add, appendToBuffer
     , buttonNew, boxNew, boxNewWithBoxtype
     , deactivate, doubleWindowNew
@@ -34,7 +34,7 @@ module FLTKHSPrelude
     , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
     , setShowroot, setText, setTextsize, setValue
     , showWidget, sizeRange
-    , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
+    , textBufferNew, textDisplayNew, textEditorNew, tileNew, treeNew, toRectangle, toSize
     ) where
 
 import Prelude (IO, Int, Bool)
@@ -42,7 +42,7 @@ import qualified Graphics.UI.FLTK.LowLevel.FL as FL
 import Graphics.UI.FLTK.LowLevel.Fl_Enumerations (Alignments(..), AlignType(..), Boxtype(..))
 import Graphics.UI.FLTK.LowLevel.FLTKHS
         ( Box, Button, DoubleWindow, FontSize(..), Group, Input, IntInput, Rectangle
-        , Ref, Size, TextBuffer, TextDisplay, Tree, TreeReasonType(..)
+        , Ref, Size, TextBuffer, TextDisplay, TextEditor, Tree, TreeReasonType(..)
         , activate, add, appendToBuffer
         , buttonNew, boxNew, boxNewWithBoxtype
         , deactivate, doubleWindowNew
@@ -53,7 +53,7 @@ import Graphics.UI.FLTK.LowLevel.FLTKHS
         , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
         , setShowroot, setText, setTextsize, setValue
         , showWidget, sizeRange
-        , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
+        , textBufferNew, textDisplayNew, textEditorNew, tileNew, treeNew, toRectangle, toSize
         )
 
 
