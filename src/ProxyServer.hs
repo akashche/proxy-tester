@@ -30,8 +30,8 @@ import Prelude ()
 import VtUtils.Prelude
 import qualified Control.Concurrent.MVar as MVar
 import qualified Data.ByteString.Lazy as ByteStringLazy
+import qualified Data.Text as Text
 import qualified Network.HTTP.Client as Client
-import qualified Network.HTTP.Client.TLS as TLS
 import qualified Network.HTTP.Types as HTTPTypes
 import qualified Network.Wai as Wai
 
@@ -44,25 +44,25 @@ data ProxyServerOptions = ProxyServerOptions
     , output :: Text -> IO ()
     , host :: Text
     , port :: Int
-    , destHost :: Text
-    , destPort :: Int
+    , pacPath :: Text
+    , pacBody :: Text
     }
 
 maxBytes :: Int
-maxBytes = 65535
+maxBytes = 65535 * 8
 
 textToLBS :: Text -> ByteStringLazy.ByteString
 textToLBS = ByteStringLazy.fromStrict . encodeUtf8
 
 createManager :: IO Manager
 createManager =
-    newManager $ TLS.tlsManagerSettings
+    newManager $ Client.defaultManagerSettings
 
 createDestReq :: Text -> Int -> Wai.Request -> Text -> Client.Request
 createDestReq dhost dport req body =
     let
         path = httpRequestPath req
-        url = "http://" <> dhost <> ":" <> (textShow dport) <> path
+        url = "http://" <> dhost <> ":" <> (textShow dport) <> "/" <> path
         method = Wai.requestMethod req
         headers = Wai.requestHeaders req
         xhost = (encodeUtf8 . textShow . Wai.remoteHost) req
@@ -73,6 +73,21 @@ createDestReq dhost dport req body =
                 , Client.requestBody = (Client.RequestBodyLBS . textToLBS) body
                 }
 
+destHostAndPort :: Wai.Request -> (Text, Int)
+destHostAndPort req =
+    let
+        hostfull = (textDecodeUtf8 . fromJust . Wai.requestHeaderHost) req
+        host = Text.takeWhile sfun hostfull
+        tport = Text.takeWhileEnd sfun hostfull
+        port = if Text.length tport < Text.length hostfull then
+            (read . unpack) tport :: Int
+        else
+            80
+    in
+        (host, port)
+    where
+        sfun ch = ':' /= ch
+
 proxyServerStart :: ProxyServerOptions -> IO (MVar.MVar ())
 proxyServerStart da = do
     let ProxyServerOptions
@@ -82,29 +97,48 @@ proxyServerStart da = do
             , output
             , host
             , port
-            , destHost
-            , destPort
+--             , pacPath
+            , pacBody
             } = da
     man <- createManager
     handle <- MVar.newEmptyMVar
+    lock <- MVar.newMVar ()
     status $ "Starting server, host: " <> host <> " port: " <> (textShow port)
     serverRunBackground status handle host port $ \req respond -> do
-        -- input
-        body <- httpRequestBodyText req
-        input $ serverFormatReq req
-        input body
-        -- forwarded
-        let dreq = createDestReq destHost destPort req body
-        forwarded $ serverFormatDestReq dreq
-        forwarded body
-        -- output
-        (dresp, dbody) <- withResponse dreq man $ \resp -> do
-            dbody <- httpResponseBodyText (textShow req) resp maxBytes
-            return (resp, dbody)
-        output $ serverFormatResponse dresp
-        output dbody
-        respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
-            dbody
+        MVar.withMVar lock $ \_ -> do
+            let (destHost, destPort) = destHostAndPort req
+            if {- host == destHost && -} port == destPort || destPort == 443 then do
+                if port == destPort then do
+                    status $ "Request to proxy itself, returning PAC"
+                    respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+                        pacBody
+                else do
+                    status $ "Ignoring request to port 443"
+                    respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+                        ""
+            else do
+                status $ "Forwarding request, host [" <> destHost <> "], port: [" <> (textShow destPort) <> "]"
+                -- input
+                body <- httpRequestBodyText req
+                input $ serverFormatReq req
+                input body
+                catch (do
+                        -- forwarded
+                        let dreq = createDestReq destHost destPort req body
+                        forwarded $ serverFormatDestReq dreq
+                        forwarded body
+                        -- output
+                        (dresp, dbody) <- withResponse dreq man $ \resp -> do
+                            dbody <- httpResponseBodyText (textShow req) resp maxBytes
+                            return (resp, dbody)
+                        output $ serverFormatResponse dresp
+                        output dbody
+                        respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+                            dbody )
+                    (\(_::SomeException) -> do
+                        status $ "Forwarding error, ignoring it"
+                        respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+                            "" )
     return handle
 
 proxyServerStop :: (MVar.MVar ()) -> IO ()

@@ -40,8 +40,8 @@ type ProxyResult = (Ref Group, Text -> IO (), IO ())
 data ProxyForm = ProxyForm
     { addr :: Ref Input
     , port :: Ref IntInput
-    , destAddr :: Ref Input
-    , destPort :: Ref IntInput
+    , pacPath :: Ref Input
+    , pacBody :: Ref TextDisplay
     , stop :: Ref Button
     }
 
@@ -56,7 +56,13 @@ data ProxyAppenders = ProxyAppenders
 
 startCallback ::(Text -> IO ()) -> ProxyForm -> ProxyAppenders -> Ref Button -> IO ()
 startCallback statusAppend form da start = do
-    let ProxyForm {addr, port, destAddr, destPort, stop} = form
+    let ProxyForm
+            { addr
+            , port
+            , pacPath
+            , pacBody
+            , stop
+            } = form
     let ProxyAppenders
             { input
             , inputClear
@@ -67,8 +73,8 @@ startCallback statusAppend form da start = do
             } = da
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
-    dav <- getValue destAddr
-    dpv <- (read . unpack) <$> getValue destPort :: IO Int
+    ppv <- getValue pacPath
+    pbv <- uiGetTextDisplayValue pacBody
     deactivate start
     let pso = ProxyServerOptions
             { input = input
@@ -77,8 +83,8 @@ startCallback statusAppend form da start = do
             , status = statusAppend
             , host = av
             , port = pv
-            , destHost = dav
-            , destPort = dpv
+            , pacPath = ppv
+            , pacBody = pbv
             }
     server <- proxyServerStart pso
     inputClear
@@ -131,24 +137,26 @@ proxyCreateRoot label statusAppend pa = do
     portInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*4, fiw, frh)) Nothing
     _ <- setValue portInput "8082" Nothing
 
-    -- dest address
-    destAddrLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "Dest IP Address")
-    uiSetLabelAlign destAddrLabel
-    destAddrInput <- inputNew (toRectangle (bx + flw + bs, by + bs*7, fiw, frh)) Nothing Nothing
-    _ <- setValue destAddrInput "127.0.0.1" Nothing
+    -- pac url
+    pacPathLabel <- boxNew (toRectangle (bx, by + bs*7, flw, frh)) (Just "PAC Path")
+    uiSetLabelAlign pacPathLabel
+    pacPathInput <- inputNew (toRectangle (bx + flw + bs, by + bs*7, fiw, frh)) Nothing Nothing
+    _ <- setValue pacPathInput "/*" Nothing
+    deactivate pacPathInput
 
-    -- dest port
-    destPortLabel <- boxNew (toRectangle (bx, by + bs*10, flw, frh)) (Just "Dest TCP Port")
-    uiSetLabelAlign destPortLabel
-    destPortInput <- intInputNew (toRectangle (bx + flw + bs, by + bs*10, fiw, frh)) Nothing
-    _ <- setValue destPortInput "8081" Nothing
-
-    -- invisible
-    invLabel <- boxNew (toRectangle (bx, by + bs*13, flw, frh)) (Just "")
-    uiSetLabelAlign invLabel
-    invBox <- boxNew (toRectangle (bx + flw + bs, by + bs*13, fiw, frh)) Nothing
-    setResizable form (Just invBox)
-    hide invBox
+    -- pac body
+    pacBodyLabel <- boxNew (toRectangle (bx, by + bs*10, flw, frh)) (Just "PAC Contents")
+    uiSetLabelAlign pacBodyLabel
+    pacBodyDisp <- textDisplayNew (toRectangle (bx + flw + bs, by + bs*10, fiw*2, frh*8))Nothing
+    setTextsize pacBodyDisp (FontSize 12)
+    pacBodyBuf <- textBufferNew Nothing Nothing
+    setBuffer pacBodyDisp (Just pacBodyBuf)
+    uiTextDisplayAppend pacBodyDisp $ "\n" <>
+            "function FindProxyForURL(url, host) {\n" <>
+            "    return \"PROXY 127.0.0.1:8082\";\n" <>
+            "}"
+    end pacBodyDisp
+    setResizable form (Just pacBodyDisp)
 
     end form
     end body
@@ -164,8 +172,8 @@ proxyCreateRoot label statusAppend pa = do
     let pf = ProxyForm
             { addr = addrInput
             , port = portInput
-            , destAddr = destAddrInput
-            , destPort = destPortInput
+            , pacPath = pacPathInput
+            , pacBody = pacBodyDisp
             , stop = butStop
             }
 
