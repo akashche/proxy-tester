@@ -33,6 +33,7 @@ import qualified Data.ByteString.Lazy as ByteStringLazy
 import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Client.TLS as TLS
 import qualified Network.HTTP.Types as HTTPTypes
+import qualified Network.Wai as Wai
 
 import ServerCommon
 
@@ -50,16 +51,34 @@ data ProxyServerOptions = ProxyServerOptions
 maxBytes :: Int
 maxBytes = 65535
 
+textToLBS :: Text -> ByteStringLazy.ByteString
+textToLBS = ByteStringLazy.fromStrict . encodeUtf8
+
 createManager :: IO Manager
 createManager =
     newManager $ TLS.tlsManagerSettings
+
+createDestReq :: Text -> Int -> Wai.Request -> Text -> Client.Request
+createDestReq dhost dport req body =
+    let
+        path = httpRequestPath req
+        url = "http://" <> dhost <> ":" <> (textShow dport) <> path
+        method = Wai.requestMethod req
+        headers = Wai.requestHeaders req
+        xhost = (encodeUtf8 . textShow . Wai.remoteHost) req
+    in
+        (parseRequest_ . unpack $ url)
+                { Client.method = method
+                , Client.requestHeaders = ("X-Forwarded-For", xhost) : headers
+                , Client.requestBody = (Client.RequestBodyLBS . textToLBS) body
+                }
 
 proxyServerStart :: ProxyServerOptions -> IO (MVar.MVar ())
 proxyServerStart da = do
     let ProxyServerOptions
             { status
             , input
-            , forwarded = _f
+            , forwarded
             , output
             , host
             , port
@@ -71,22 +90,21 @@ proxyServerStart da = do
     status $ "Starting server, host: " <> host <> " port: " <> (textShow port)
     serverRunBackground status handle host port $ \req respond -> do
         -- input
-        let path = httpRequestPath req
-        rt <- httpRequestBodyText req
-        input path
-        input rt
+        body <- httpRequestBodyText req
+        input $ serverFormatReq req
+        input body
         -- forwarded
-        let url = "http://" <> destHost <> ":" <> (textShow destPort) <> path
-        let dreq = (parseRequest_ . unpack $ url)
-                { Client.method = "GET"
-                , Client.requestHeaders = []
-                }
+        let dreq = createDestReq destHost destPort req body
+        forwarded $ serverFormatDestReq dreq
+        forwarded body
         -- output
-        dresp <- withResponse dreq man $ \resp ->
-            httpResponseBodyText (textShow req) resp maxBytes
-        output dresp
-        respond $ responseLBS HTTPTypes.status200 [] $ ByteStringLazy.fromStrict $ encodeUtf8 $
-            dresp
+        (dresp, dbody) <- withResponse dreq man $ \resp -> do
+            dbody <- httpResponseBodyText (textShow req) resp maxBytes
+            return (resp, dbody)
+        output $ serverFormatResponse dresp
+        output dbody
+        respond $ responseLBS HTTPTypes.status200 [] $ textToLBS $
+            dbody
     return handle
 
 proxyServerStop :: (MVar.MVar ()) -> IO ()

@@ -42,11 +42,12 @@ library:
   dependencies:
   - async
   - bytestring
-  - text
-  - vector
+  - case-insensitive
   - http-client
   - http-client-tls
   - http-types
+  - text
+  - vector
   - vt-utils
   - wai
   - warp

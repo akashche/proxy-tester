@@ -161,7 +161,7 @@ uiTextDisplayAppend disp msg = do
 uiTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()
 uiTextDisplayMessage disp msg = do
     _ <- fltkhsLock
-    date <- (dateFormat "%H:%M:%S") <$> getCurrentTime
+    date <- (dateFormat "[%H:%M:%S]") <$> getCurrentTime
     uiTextDisplayAppend disp (date <> " " <> msg)
     _ <- fltkhsUnlock
     _ <- fltkhsAwake

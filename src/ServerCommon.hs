@@ -22,6 +22,9 @@
 
 module ServerCommon
     ( serverRunBackground
+    , serverFormatReq
+    , serverFormatDestReq
+    , serverFormatResponse
     ) where
 
 import Prelude ()
@@ -30,8 +33,18 @@ import qualified Control.Concurrent as Concurrent
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Concurrent.MVar as MVar
 import qualified Data.String as String
+import qualified Data.CaseInsensitive as CaseInsensitive
+import qualified Network.HTTP.Client as Client
+import qualified Network.HTTP.Types as HTTPTypes
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
+
+formatHeaders :: [HTTPTypes.Header] -> Text
+formatHeaders headers =
+    foldl' hfun "" headers
+    where
+        uncase = textDecodeUtf8 . CaseInsensitive.original
+        hfun ac (name, val) = ac <> (uncase name) <> " : " <> (textDecodeUtf8 val) <> "\n"
 
 -- https://stackoverflow.com/a/45846292/314015
 serverRunBackground :: (Text -> IO ()) -> MVar.MVar () -> Text -> Int -> Wai.Application -> IO ()
@@ -46,3 +59,34 @@ serverRunBackground status handle host port app = do
                 (\(e::SomeException) -> status $ "Server stopped, message: [" <> (textShow e) <> "]")
             return ()
     return ()
+
+serverFormatReq :: Wai.Request -> Text
+serverFormatReq req =
+    let
+        xhost = (textShow . Wai.remoteHost) req
+        path = httpRequestPath req
+        method = (textShow . Wai.requestMethod) req
+        headers = (formatHeaders . Wai.requestHeaders) req
+    in
+        xhost <> "\n" <> method <> " " <> path <> "\n" <> headers
+
+serverFormatDestReq :: Client.Request -> Text
+serverFormatDestReq req =
+    let
+        method = (textShow . Client.method) req
+        host = (textDecodeUtf8 . Client.host) req
+        port = Client.port req
+        path = (textDecodeUtf8 . Client.path) req
+        headers = (formatHeaders . Client.requestHeaders) req
+        dest = host <> ":" <> (textShow port)
+    in
+        dest <> "\n" <> method <> " " <> path <> "\n" <> headers
+
+serverFormatResponse :: forall a . Client.Response a -> Text
+serverFormatResponse resp =
+    let
+        code = (textShow . HTTPTypes.statusCode . Client.responseStatus) resp
+        msg = (textDecodeUtf8 . HTTPTypes.statusMessage . Client.responseStatus) resp
+        headers = (formatHeaders . Client.responseHeaders) resp
+    in
+        code <> " " <> msg <> "\n" <> headers

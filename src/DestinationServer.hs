@@ -57,7 +57,7 @@ destinationServerStart da = do
     status $ "Starting server, host: " <> host <> " port: " <> (textShow port)
     serverRunBackground status handle host port $ \req respond -> do
         rt <- httpRequestBodyText req
-        input (httpRequestPath req)
+        input $ serverFormatReq req
         input rt
         output response
         respond $ responseLBS HTTPTypes.status200 [] $ ByteStringLazy.fromStrict $ encodeUtf8 $
