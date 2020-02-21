@@ -44,15 +44,22 @@ data DestForm = DestForm
 
 data DestinationAppenders = DestinationAppenders
     { input :: Text -> IO ()
+    , inputClear :: IO ()
     , output :: Text -> IO ()
+    , outputClear :: IO ()
     }
 
-type DestinationDisplayResult = (Ref Group, Text -> IO ())
+type DestinationDisplayResult = (Ref Group, Text -> IO (), IO ())
 
 startCallback ::(Text -> IO ()) -> DestForm -> DestinationAppenders -> Ref Button -> IO ()
 startCallback statusAppend form da start = do
     let DestForm {addr, port, resp, stop} = form
-    let DestinationAppenders {input, output} = da
+    let DestinationAppenders
+            { input
+            , inputClear
+            , output
+            , outputClear
+            } = da
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
     rv <- uiGetTextDisplayValue resp
@@ -66,6 +73,8 @@ startCallback statusAppend form da start = do
             , response = rv
             }
     server <- destinationServerStart dsa
+    inputClear
+    outputClear
     setCallback stop $ \_ -> do
         deactivate stop
         destinationServerStop server

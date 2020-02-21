@@ -35,7 +35,6 @@ data Actions = Actions
     , proxyOutputAppend :: Text -> IO ()
     , destInputAppend :: Text -> IO ()
     , destOutputAppend :: Text -> IO ()
-    , proxyInputAppend :: Text -> IO ()
     }
 
 

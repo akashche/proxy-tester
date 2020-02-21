@@ -35,7 +35,7 @@ import FLTKHSPrelude
 import ProxyServer
 import UICommon
 
-type ProxyResult = (Ref Group, Text -> IO ())
+type ProxyResult = (Ref Group, Text -> IO (), IO ())
 
 data ProxyForm = ProxyForm
     { addr :: Ref Input
@@ -47,14 +47,24 @@ data ProxyForm = ProxyForm
 
 data ProxyAppenders = ProxyAppenders
     { input :: Text -> IO ()
+    , inputClear :: IO ()
     , forwarded :: Text -> IO ()
+    , forwardedClear :: IO ()
     , output :: Text -> IO ()
+    , outputClear :: IO ()
     }
 
 startCallback ::(Text -> IO ()) -> ProxyForm -> ProxyAppenders -> Ref Button -> IO ()
 startCallback statusAppend form da start = do
     let ProxyForm {addr, port, destAddr, destPort, stop} = form
-    let ProxyAppenders {input, forwarded, output} = da
+    let ProxyAppenders
+            { input
+            , inputClear
+            , forwarded
+            , forwardedClear
+            , output
+            , outputClear
+            } = da
     av <- getValue addr
     pv <- (read . unpack) <$> getValue port :: IO Int
     dav <- getValue destAddr
@@ -71,6 +81,9 @@ startCallback statusAppend form da start = do
             , destPort = dpv
             }
     server <- proxyServerStart pso
+    inputClear
+    forwardedClear
+    outputClear
     setCallback stop $ \_ -> do
         deactivate stop
         proxyServerStop server
@@ -110,7 +123,7 @@ proxyCreateRoot label statusAppend pa = do
     addrLabel <- boxNew (toRectangle (bx, by + bs, flw, frh)) (Just "IP Address")
     uiSetLabelAlign addrLabel
     addrInput <- inputNew (toRectangle (bx + flw + bs, by + bs, fiw, frh)) Nothing Nothing
-    _ <- setValue addrInput "127.0.0.1" Nothing
+    _ <- setValue addrInput "0.0.0.0" Nothing
 
     -- port
     portLabel <- boxNew (toRectangle (bx, by + bs*4, flw, frh)) (Just "TCP Port")

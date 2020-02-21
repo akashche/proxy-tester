@@ -28,6 +28,7 @@ module UICommon
     , uiCreateHeader
     , uiCreateTextDisplayGroup
     , uiTextDisplayAppend
+    , uiTextDisplayClear
     , uiTextDisplayMessage
     , uiSetLabelAlign
     , uiGetTextDisplayValue
@@ -124,7 +125,7 @@ uiCreateHeader label = do
     setLabelsize box (FontSize 18)
     return box
 
-uiCreateTextDisplayGroup :: Text -> Text -> IO (Ref Group, Text -> IO ())
+uiCreateTextDisplayGroup :: Text -> Text -> IO (Ref Group, Text -> IO (), IO ())
 uiCreateTextDisplayGroup label header = do
     let UIRectangles
             { contentRect
@@ -143,11 +144,12 @@ uiCreateTextDisplayGroup label header = do
     end disp
 
     let append = uiTextDisplayMessage disp
+    let clear = uiTextDisplayClear disp
 
     setResizable gr (Just disp)
     end gr
     hide gr
-    return (gr, append)
+    return (gr, append, clear)
 
 uiTextDisplayAppend :: Ref TextDisplay -> Text -> IO ()
 uiTextDisplayAppend disp msg = do
@@ -156,6 +158,14 @@ uiTextDisplayAppend disp msg = do
         Just buf -> do
             appendToBuffer buf msg
             appendToBuffer buf "\n"
+        Nothing -> return ()
+
+uiTextDisplayClear :: Ref TextDisplay -> IO ()
+uiTextDisplayClear disp = do
+    mbuf <- getBuffer disp
+    case mbuf of
+        Just buf -> do
+            setText buf ""
         Nothing -> return ()
 
 uiTextDisplayMessage :: Ref TextDisplay -> Text -> IO ()

@@ -32,7 +32,7 @@ module FLTKHSPrelude
     , groupNew, hide, end
     , inputNew, intInputNew
     , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
-    , setShowroot, setTextsize, setValue
+    , setShowroot, setText, setTextsize, setValue
     , showWidget, sizeRange
     , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
     ) where
@@ -51,7 +51,7 @@ import Graphics.UI.FLTK.LowLevel.FLTKHS
         , groupNew, hide, end
         , inputNew, intInputNew
         , setAlign, setBox, setBuffer, setCallback, setLabelsize, setResizable
-        , setShowroot, setTextsize, setValue
+        , setShowroot, setText, setTextsize, setValue
         , showWidget, sizeRange
         , textDisplayNew, textBufferNew, tileNew, treeNew, toRectangle, toSize
         )
